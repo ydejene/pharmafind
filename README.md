@@ -1,17 +1,58 @@
-# pharmafind
+# PharmaFind
 
-A new Flutter project.
+PharmaFind is a Flutter mobile application that helps users locate prescribed medicines at nearby pharmacies in Rwanda. Users can explore pharmacy locations, check medicine availability, compare prices, and access relevant pharmacy information.
+
+## Technology Stack
+
+- **Framework:** Flutter
+- **Language:** Dart
+- **Backend:** Firebase
+- **Database:** Cloud Firestore
+- **State Management:** BLoC / Cubit
+- **Platforms:** Android and iOS
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK
+- Dart SDK (included with Flutter)
+- Android Studio or VS Code
+- An Android emulator or physical device
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Setup
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Clone the repository.
+2. Open the project directory.
+3. Install dependencies:
+
+   ```bash
+   flutter pub get
+   ```
+
+4. Run the application:
+
+   ```bash
+   flutter run
+   ```
+
+Firebase configuration instructions will be added when the Firebase integration is established.
+
+## Project Structure
+
+The application will follow a layered architecture, separating application foundations, data access, business logic, and presentation.
+
+The finalized directory structure will be documented as the project develops.
+
+## Contribution Guidelines
+
+- Work on a dedicated feature branch created from the agreed development branch.
+- Keep changes focused on the assigned task.
+- Follow the established project architecture and coding conventions.
+- Test changes before requesting integration.
+- Use descriptive commit messages.
+- Coordinate changes involving shared models, services, routing, and application configuration with the team.
+
+## Development Status
+
+The project is currently in its initial setup stage. Shared architecture, Firebase integration, and feature implementation will be introduced progressively.
