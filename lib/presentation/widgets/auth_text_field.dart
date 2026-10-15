@@ -10,6 +10,10 @@ class AuthTextField extends StatelessWidget {
   final bool obscureText;
   final VoidCallback? onToggleObscure;
   final String? Function(String?)? validator;
+  final TextInputType keyboardType;
+  final TextInputAction textInputAction;
+  final TextCapitalization textCapitalization;
+  final ValueChanged<String>? onFieldSubmitted;
 
   const AuthTextField({
     super.key,
@@ -20,6 +24,10 @@ class AuthTextField extends StatelessWidget {
     this.obscureText = false,
     this.onToggleObscure,
     this.validator,
+    this.keyboardType = TextInputType.text,
+    this.textInputAction = TextInputAction.next,
+    this.textCapitalization = TextCapitalization.none,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -41,6 +49,10 @@ class AuthTextField extends StatelessWidget {
           controller: controller,
           obscureText: obscureText,
           validator: validator,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
+          onFieldSubmitted: onFieldSubmitted,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(prefixIcon, size: 20),
