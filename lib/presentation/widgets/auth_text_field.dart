@@ -6,12 +6,16 @@ class AuthTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final String hint;
+  final IconData prefixIcon;
+  final String? Function(String?)? validator;
 
   const AuthTextField({
     super.key,
     required this.controller,
     required this.label,
     required this.hint,
+    required this.prefixIcon,
+    this.validator,
   });
 
   @override
@@ -31,7 +35,11 @@ class AuthTextField extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
-          decoration: InputDecoration(hintText: hint),
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(prefixIcon, size: 20),
+          ),
         ),
       ],
     );
