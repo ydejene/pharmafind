@@ -7,6 +7,8 @@ class AuthTextField extends StatelessWidget {
   final String label;
   final String hint;
   final IconData prefixIcon;
+  final bool obscureText;
+  final VoidCallback? onToggleObscure;
   final String? Function(String?)? validator;
 
   const AuthTextField({
@@ -15,6 +17,8 @@ class AuthTextField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.prefixIcon,
+    this.obscureText = false,
+    this.onToggleObscure,
     this.validator,
   });
 
@@ -35,10 +39,22 @@ class AuthTextField extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
+          obscureText: obscureText,
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(prefixIcon, size: 20),
+            suffixIcon: onToggleObscure != null
+                ? IconButton(
+                    icon: Icon(
+                      obscureText
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: onToggleObscure,
+                  )
+                : null,
           ),
         ),
       ],
