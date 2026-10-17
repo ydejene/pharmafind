@@ -67,6 +67,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validateEmail,
                 ),
+                const SizedBox(height: 20),
+                AuthTextField(
+                  controller: _passwordController,
+                  label: AppStrings.get('password', locale),
+                  hint: AppStrings.get('password_hint', locale),
+                  prefixIcon: Icons.lock_outline,
+                  obscureText: _obscurePassword,
+                  onToggleObscure: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  validator: Validators.validatePassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleLogin(),
+                ),
               ],
             ),
           ),
