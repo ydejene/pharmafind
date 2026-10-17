@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/app_strings.dart';
+import '../../../core/utils/validators.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/settings/settings_cubit.dart';
+import '../../widgets/auth_header.dart';
+import '../../widgets/auth_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,16 +42,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<SettingsCubit>().state.locale;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
+                AuthHeader(
+                  eyebrow: AppStrings.get('welcome', locale),
+                  title: AppStrings.get('login', locale),
+                ),
+                const SizedBox(height: 32),
+                AuthTextField(
+                  controller: _emailController,
+                  label: AppStrings.get('email', locale),
+                  hint: AppStrings.get('email_hint', locale),
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
+                ),
               ],
             ),
           ),
