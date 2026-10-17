@@ -5,8 +5,12 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/validators.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_navigation.dart';
+import '../../utils/auth_snackbar.dart';
 import '../../widgets/auth_header.dart';
+import '../../widgets/auth_submit_button.dart';
 import '../../widgets/auth_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,48 +48,67 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final locale = context.watch<SettingsCubit>().state.locale;
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
-                AuthHeader(
-                  eyebrow: AppStrings.get('welcome', locale),
-                  title: AppStrings.get('login', locale),
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticated) {
+          AuthNavigation.toHome(context);
+        } else if (state is AuthError) {
+          AuthSnackbar.showError(context, state.message);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 40),
+                    AuthHeader(
+                      eyebrow: AppStrings.get('welcome', locale),
+                      title: AppStrings.get('login', locale),
+                    ),
+                    const SizedBox(height: 32),
+                    AuthTextField(
+                      controller: _emailController,
+                      label: AppStrings.get('email', locale),
+                      hint: AppStrings.get('email_hint', locale),
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: Validators.validateEmail,
+                    ),
+                    const SizedBox(height: 20),
+                    AuthTextField(
+                      controller: _passwordController,
+                      label: AppStrings.get('password', locale),
+                      hint: AppStrings.get('password_hint', locale),
+                      prefixIcon: Icons.lock_outline,
+                      obscureText: _obscurePassword,
+                      onToggleObscure: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      validator: Validators.validatePassword,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _handleLogin(),
+                    ),
+                    const SizedBox(height: 24),
+                    AuthSubmitButton(
+                      label: AppStrings.get('sign_in', locale),
+                      isLoading: isLoading,
+                      onPressed: _handleLogin,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-                AuthTextField(
-                  controller: _emailController,
-                  label: AppStrings.get('email', locale),
-                  hint: AppStrings.get('email_hint', locale),
-                  prefixIcon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 20),
-                AuthTextField(
-                  controller: _passwordController,
-                  label: AppStrings.get('password', locale),
-                  hint: AppStrings.get('password_hint', locale),
-                  prefixIcon: Icons.lock_outline,
-                  obscureText: _obscurePassword,
-                  onToggleObscure: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  validator: Validators.validatePassword,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleLogin(),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
