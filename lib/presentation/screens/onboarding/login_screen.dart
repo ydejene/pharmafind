@@ -54,6 +54,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final locale = context.watch<SettingsCubit>().state.locale;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // This screen stays mounted under /register and /forgot-password, so
+      // only react while it is on top.
+      listenWhen: (_, _) => ModalRoute.isCurrentOf(context) ?? false,
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           AuthNavigation.toHome(context);
