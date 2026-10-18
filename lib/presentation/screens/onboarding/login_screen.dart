@@ -151,6 +151,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         label: Text(AppStrings.get('google_sign_in', locale)),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          AppStrings.get('no_account', locale),
+                          style: const TextStyle(color: AppColors.textLight),
+                        ),
+                        TextButton(
+                          onPressed: () => AuthNavigation.toRegister(context),
+                          child: Text(
+                            AppStrings.get('sign_up', locale),
+                            style: const TextStyle(
+                              color: AppColors.accentOrange,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () => AuthNavigation.toHome(context),
+                      child: Text(
+                        AppStrings.get('skip_for_now', locale),
+                        style: const TextStyle(
+                          color: AppColors.textLight,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
