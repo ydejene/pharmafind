@@ -45,6 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _handleGoogleSignIn() {
+    context.read<AuthBloc>().add(AuthGoogleSignInRequested());
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = context.watch<SettingsCubit>().state.locale;
@@ -116,6 +120,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: AppStrings.get('sign_in', locale),
                       isLoading: isLoading,
                       onPressed: _handleLogin,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Divider(color: AppColors.borderLight),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            AppStrings.get('or_continue_with', locale),
+                            style: const TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        const Expanded(
+                          child: Divider(color: AppColors.borderLight),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        onPressed: isLoading ? null : _handleGoogleSignIn,
+                        icon: const Icon(Icons.g_mobiledata, size: 28),
+                        label: Text(AppStrings.get('google_sign_in', locale)),
+                      ),
                     ),
                   ],
                 ),
