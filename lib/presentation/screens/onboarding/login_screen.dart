@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/validators.dart';
 import '../../bloc/auth/auth_bloc.dart';
@@ -96,7 +97,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleLogin(),
                     ),
-                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () =>
+                            AuthNavigation.toForgotPassword(context),
+                        child: Text(
+                          AppStrings.get('forgot_password', locale),
+                          style: const TextStyle(
+                            color: AppColors.accentOrange,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     AuthSubmitButton(
                       label: AppStrings.get('sign_in', locale),
                       isLoading: isLoading,
