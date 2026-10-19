@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/app_strings.dart';
+import '../../../core/utils/validators.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/settings/settings_cubit.dart';
+import '../../widgets/auth_header.dart';
+import '../../widgets/auth_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -43,6 +48,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<SettingsCubit>().state.locale;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -53,9 +60,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [],
+              children: [
+                AuthHeader(
+                  eyebrow: AppStrings.get('get_started', locale),
+                  title: AppStrings.get('register', locale),
+                ),
+                const SizedBox(height: 28),
+                AuthTextField(
+                  controller: _nameController,
+                  label: AppStrings.get('full_name', locale),
+                  hint: AppStrings.get('name_hint', locale),
+                  prefixIcon: Icons.person_outline,
+                  textCapitalization: TextCapitalization.words,
+                  validator: Validators.validateName,
+                ),
+                const SizedBox(height: 18),
+                AuthTextField(
+                  controller: _emailController,
+                  label: AppStrings.get('email', locale),
+                  hint: AppStrings.get('email_hint', locale),
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
+                ),
+              ],
             ),
           ),
         ),
