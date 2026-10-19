@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_event.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,6 +27,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _handleRegister() {
+    if (_formKey.currentState?.validate() ?? false) {
+      context.read<AuthBloc>().add(
+        AuthRegisterRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          displayName: _nameController.text.trim(),
+        ),
+      );
+    }
   }
 
   @override
