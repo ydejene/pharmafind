@@ -85,6 +85,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validateEmail,
                 ),
+                const SizedBox(height: 18),
+                AuthTextField(
+                  controller: _passwordController,
+                  label: AppStrings.get('password', locale),
+                  hint: AppStrings.get('password_hint', locale),
+                  prefixIcon: Icons.lock_outline,
+                  obscureText: _obscurePassword,
+                  onToggleObscure: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  validator: Validators.validatePassword,
+                ),
+                const SizedBox(height: 18),
+                AuthTextField(
+                  controller: _confirmPasswordController,
+                  label: AppStrings.get('confirm_password', locale),
+                  hint: AppStrings.get('confirm_password_hint', locale),
+                  prefixIcon: Icons.lock_outline,
+                  obscureText: _obscureConfirm,
+                  onToggleObscure: () {
+                    setState(() => _obscureConfirm = !_obscureConfirm);
+                  },
+                  validator: (value) => Validators.validateConfirmPassword(
+                    value,
+                    _passwordController.text,
+                  ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleRegister(),
+                ),
               ],
             ),
           ),
