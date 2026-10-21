@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
-import 'presentation/screens/onboarding/onboarding.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
@@ -26,10 +25,18 @@ class PharmaFindApp extends StatelessWidget {
               settings: routeSettings,
               builder: (context) => switch (routeSettings.name) {
                 '/' => const SplashScreen(),
-                '/language' => const LanguageScreen(),
-                '/login' => const LoginScreen(),
-                '/register' => const RegisterScreen(),
-                '/forgot-password' => const ForgotPasswordScreen(),
+                // Temporary foundation stubs for splash navigation targets.
+                // Feature owners replace these with LanguageScreen() and LoginScreen().
+                '/language' => _buildPlaceholderScreen(
+                  context,
+                  title: 'Language Selection',
+                  routeName: '/language',
+                ),
+                '/login' => _buildPlaceholderScreen(
+                  context,
+                  title: 'Login',
+                  routeName: '/login',
+                ),
                 _ => Scaffold(
                   body: Center(
                     child: Text(AppStrings.get('error', settings.locale)),
@@ -40,6 +47,35 @@ class PharmaFindApp extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  static Widget _buildPlaceholderScreen(
+    BuildContext context, {
+    required String title,
+    required String routeName,
+  }) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '$title ($routeName)',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Foundation placeholder — Pending feature implementation.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
