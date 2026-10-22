@@ -7,6 +7,10 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_snackbar.dart';
+import '../../widgets/auth_header.dart';
+import '../../widgets/auth_submit_button.dart';
+import '../../widgets/auth_text_field.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -18,6 +22,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  bool _sent = false;
 
   @override
   void dispose() {
@@ -37,63 +42,78 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final locale = context.watch<SettingsCubit>().state.locale;
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                Text(
-                  AppStrings.get('forgot_password', locale),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthPasswordResetSent) {
+          setState(() => _sent = true);
+        } else if (state is AuthError) {
+          AuthSnackbar.showError(context, state.message);
+        }
+      },
+      builder: (context, state) {
+        final theme = Theme.of(context);
+
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            foregroundColor: theme.colorScheme.onSurface,
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuthHeader(
+                      title: AppStrings.get('forgot_password', locale),
+                      subtitle: AppStrings.get(
+                        _sent ? 'password_reset_sent' : 'forgot_password_sub',
+                        locale,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    if (_sent) ...[
+                      Icon(
+                        Icons.mark_email_read_outlined,
+                        size: 64,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(AppStrings.get('sign_in', locale)),
+                        ),
+                      ),
+                    ] else ...[
+                      AuthTextField(
+                        controller: _emailController,
+                        label: AppStrings.get('email', locale),
+                        hint: AppStrings.get('email_hint', locale),
+                        prefixIcon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: Validators.validateEmail,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleSubmit(),
+                      ),
+                      const SizedBox(height: 24),
+                      AuthSubmitButton(
+                        label: AppStrings.get('continue_btn', locale),
+                        isLoading: state is AuthLoading,
+                        onPressed: _handleSubmit,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  AppStrings.get('forgot_password_subtitle', locale),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: AppStrings.get('email', locale),
-                    hintText: AppStrings.get('email_hint', locale),
-                    prefixIcon: const Icon(Icons.email_outlined),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.validateEmail,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleSubmit(),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _handleSubmit,
-                    child: Text(AppStrings.get('continue_btn', locale)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
