@@ -68,25 +68,44 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     AuthHeader(
                       title: AppStrings.get('forgot_password', locale),
-                      subtitle: AppStrings.get('forgot_password_sub', locale),
+                      subtitle: AppStrings.get(
+                        _sent ? 'password_reset_sent' : 'forgot_password_sub',
+                        locale,
+                      ),
                     ),
                     const SizedBox(height: 32),
-                    AuthTextField(
-                      controller: _emailController,
-                      label: AppStrings.get('email', locale),
-                      hint: AppStrings.get('email_hint', locale),
-                      prefixIcon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: Validators.validateEmail,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _handleSubmit(),
-                    ),
-                    const SizedBox(height: 24),
-                    AuthSubmitButton(
-                      label: AppStrings.get('continue_btn', locale),
-                      isLoading: state is AuthLoading,
-                      onPressed: _handleSubmit,
-                    ),
+                    if (_sent) ...[
+                      Icon(
+                        Icons.mark_email_read_outlined,
+                        size: 64,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(AppStrings.get('sign_in', locale)),
+                        ),
+                      ),
+                    ] else ...[
+                      AuthTextField(
+                        controller: _emailController,
+                        label: AppStrings.get('email', locale),
+                        hint: AppStrings.get('email_hint', locale),
+                        prefixIcon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: Validators.validateEmail,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleSubmit(),
+                      ),
+                      const SizedBox(height: 24),
+                      AuthSubmitButton(
+                        label: AppStrings.get('continue_btn', locale),
+                        isLoading: state is AuthLoading,
+                        onPressed: _handleSubmit,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                   ],
                 ),
