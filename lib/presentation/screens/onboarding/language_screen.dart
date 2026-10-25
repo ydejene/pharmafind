@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -7,6 +8,7 @@ import '../../bloc/settings/settings_cubit.dart';
 import '../../utils/auth_navigation.dart';
 import '../../widgets/auth_header.dart';
 
+/// First screen of the onboarding flow where users pick their language.
 class LanguageScreen extends StatelessWidget {
   const LanguageScreen({super.key});
 
@@ -122,6 +124,7 @@ class _LanguageTile extends StatelessWidget {
     return Semantics(
       button: true,
       selected: isSelected,
+      label: '$name language option',
       child: Material(
         color: isSelected
             ? colorScheme.primary.withValues(alpha: 0.08)
