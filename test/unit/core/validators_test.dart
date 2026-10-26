@@ -19,5 +19,17 @@ void main() {
         expect(Validators.validateEmail('user.name@domain.rw'), isNull);
       });
     });
+
+    group('validatePassword', () {
+      test('returns error for short password', () {
+        expect(Validators.validatePassword('123'), isNotNull);
+        expect(Validators.validatePassword(''), isNotNull);
+      });
+
+      test('returns null for valid password', () {
+        expect(Validators.validatePassword('password123'), isNull);
+        expect(Validators.validatePassword('sixcha'), isNull);
+      });
+    });
   });
 }
