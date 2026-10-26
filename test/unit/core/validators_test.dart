@@ -31,5 +31,29 @@ void main() {
         expect(Validators.validatePassword('sixcha'), isNull);
       });
     });
+
+    group('validateConfirmPassword', () {
+      test('returns error when passwords dont match', () {
+        expect(
+          Validators.validateConfirmPassword('abc123', 'def456'),
+          isNotNull,
+        );
+      });
+
+      test('returns null when passwords match', () {
+        expect(Validators.validateConfirmPassword('abc123', 'abc123'), isNull);
+      });
+    });
+
+    group('validateName', () {
+      test('returns error for empty name', () {
+        expect(Validators.validateName(''), isNotNull);
+        expect(Validators.validateName(null), isNotNull);
+      });
+
+      test('returns null for valid name', () {
+        expect(Validators.validateName('John Doe'), isNull);
+      });
+    });
   });
 }
