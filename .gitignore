@@ -1,0 +1,16 @@
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+.vscode/
+*.iml
+.DS_Store
+**/android/**/GeneratedPluginRegistrant.java
+**/android/.gradle
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/ios/Pods/
+**/ios/**/*.xcworkspace
