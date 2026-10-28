@@ -1,18 +1,31 @@
+import '../../core/constants/auth_constants.dart';
+import '../../core/exceptions/auth_exception.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
+  final Map<String, UserModel> _registeredUsers = {};
   UserModel? _currentUser;
 
   UserModel? get currentUser => _currentUser;
+  bool get isAuthenticated => _currentUser != null;
 
   Future<UserModel> signInWithEmail(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(AuthConstants.authDelay);
+    final normalizedEmail = email.trim().toLowerCase();
+
+    final existing = _registeredUsers[normalizedEmail];
+    if (existing != null) {
+      _currentUser = existing;
+      return _currentUser!;
+    }
+
     _currentUser = UserModel(
-      uid: 'user-${email.hashCode.abs()}',
-      email: email.trim(),
-      displayName: email.split('@').first,
+      uid: 'user-${normalizedEmail.hashCode.abs()}',
+      email: normalizedEmail,
+      displayName: normalizedEmail.split('@').first,
       createdAt: DateTime.now(),
     );
+    _registeredUsers[normalizedEmail] = _currentUser!;
     return _currentUser!;
   }
 
@@ -22,19 +35,30 @@ class AuthRepository {
     required String displayName,
     String role = 'patient',
   }) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(AuthConstants.authDelay);
+    final normalizedEmail = email.trim().toLowerCase();
+
+    if (_registeredUsers.containsKey(normalizedEmail)) {
+      throw AuthException.emailAlreadyInUse();
+    }
+
+    if (password.length < AuthConstants.minPasswordLength) {
+      throw AuthException.weakPassword();
+    }
+
     _currentUser = UserModel(
       uid: 'user-${DateTime.now().millisecondsSinceEpoch}',
-      email: email.trim(),
-      displayName: displayName,
+      email: normalizedEmail,
+      displayName: displayName.trim(),
       role: role,
       createdAt: DateTime.now(),
     );
+    _registeredUsers[normalizedEmail] = _currentUser!;
     return _currentUser!;
   }
 
   Future<UserModel> signInWithGoogle() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(AuthConstants.authDelay);
     _currentUser = UserModel(
       uid: 'google-user-001',
       email: 'demo@gmail.com',
@@ -45,7 +69,11 @@ class AuthRepository {
   }
 
   Future<void> sendPasswordReset(String email) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(AuthConstants.resetDelay);
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) {
+      throw AuthException.userNotFound();
+    }
   }
 
   Future<void> signOut() async {
@@ -58,5 +86,6 @@ class AuthRepository {
 
   Future<void> updateUserProfile(UserModel userModel) async {
     _currentUser = userModel;
+    _registeredUsers[userModel.email] = userModel;
   }
 }
