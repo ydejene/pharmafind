@@ -5,6 +5,7 @@ import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/screens/onboarding/forgot_password_screen.dart';
+import 'presentation/screens/onboarding/language_screen.dart';
 import 'presentation/screens/onboarding/login_screen.dart';
 import 'presentation/screens/onboarding/register_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
@@ -28,11 +29,7 @@ class PharmaFindApp extends StatelessWidget {
               settings: routeSettings,
               builder: (context) => switch (routeSettings.name) {
                 '/' => const SplashScreen(),
-                '/language' => _buildPlaceholderScreen(
-                  context,
-                  title: 'Language Selection',
-                  routeName: '/language',
-                ),
+                '/language' => const LanguageScreen(),
                 '/login' => const LoginScreen(),
                 '/register' => const RegisterScreen(),
                 '/forgot-password' => const ForgotPasswordScreen(),
@@ -49,32 +46,4 @@ class PharmaFindApp extends StatelessWidget {
     );
   }
 
-  static Widget _buildPlaceholderScreen(
-    BuildContext context, {
-    required String title,
-    required String routeName,
-  }) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '$title ($routeName)',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Foundation placeholder — Pending feature implementation.',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
