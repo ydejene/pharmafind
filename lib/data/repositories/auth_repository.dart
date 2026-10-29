@@ -88,4 +88,21 @@ class AuthRepository {
     _currentUser = userModel;
     _registeredUsers[userModel.email] = userModel;
   }
+
+  Future<void> deleteAccount(String email) async {
+    await Future.delayed(AuthConstants.authDelay);
+    final normalizedEmail = email.trim().toLowerCase();
+
+    if (_currentUser == null || _currentUser!.email != normalizedEmail) {
+      throw AuthException.invalidCredentials();
+    }
+
+    _registeredUsers.remove(normalizedEmail);
+    _currentUser = null;
+  }
+
+  Future<bool> isEmailRegistered(String email) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    return _registeredUsers.containsKey(normalizedEmail);
+  }
 }
