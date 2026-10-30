@@ -7,9 +7,11 @@ import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/screens/alerts/notify_confirmation_screen.dart';
 import 'presentation/screens/alerts/notify_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/onboarding/forgot_password_screen.dart';
 import 'presentation/screens/onboarding/language_screen.dart';
 import 'presentation/screens/onboarding/login_screen.dart';
 import 'presentation/screens/onboarding/register_screen.dart';
+import 'presentation/screens/onboarding/welcome_screen.dart';
 import 'presentation/screens/partner/partner_dashboard_screen.dart';
 import 'presentation/screens/partner/partner_license_screen.dart';
 import 'presentation/screens/partner/partner_pending_screen.dart';
@@ -43,9 +45,11 @@ class PharmaFindApp extends StatelessWidget {
               settings: routeSettings,
               builder: (context) => switch (routeSettings.name) {
                 '/' => const SplashScreen(),
+                '/welcome' => const WelcomeScreen(),
                 '/language' => const LanguageScreen(),
                 '/login' => const LoginScreen(),
                 '/register' => const RegisterScreen(),
+                '/forgot-password' => const ForgotPasswordScreen(),
                 '/home' => const HomeScreen(),
                 '/search-results' => const SearchResultsScreen(),
                 '/pharmacy-detail' => const PharmacyDetailScreen(),
