@@ -1,0 +1,47 @@
+name: pharma_find
+description: "PharmaFind - Medicine nearby. Peace of mind."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_bloc: ^9.1.1
+  equatable: ^3.0.0
+
+  # Map
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+
+  # Local Storage
+  shared_preferences: ^2.5.6
+
+  # Location
+  geolocator: ^14.1.2
+
+  # Notifications
+  flutter_local_notifications: ^22.3.2
+
+  # Utilities
+  intl: ^0.20.3
+  url_launcher: ^6.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
