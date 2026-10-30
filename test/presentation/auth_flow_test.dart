@@ -139,14 +139,59 @@ void main() {
     });
   });
 
-  group('Language selection and onboarding', () {
-    testWidgets('first launch opens language selection', (tester) async {
-      await pumpApp(tester, seenOnboarding: false);
+  group('Login', () {
+    testWidgets('empty form shows validation errors and stays put', (
+      tester,
+    ) async {
+      await pumpApp(tester);
 
-      expect(find.text(_en('choose_language')), findsOneWidget);
-      expect(find.text('Kinyarwanda'), findsOneWidget);
-      expect(find.text('English'), findsOneWidget);
-      expect(find.text('Français'), findsOneWidget);
+      await tapText(tester, _en('sign_in'));
+
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+    });
+
+    testWidgets('valid credentials open home', (tester) async {
+      await pumpApp(tester);
+
+      await enterFields(tester, ['user@example.com', 'secret1']);
+      await tapText(tester, _en('sign_in'));
+      await settleAuth(tester);
+
+      expectOnHomeWithNoWayBack(tester);
+    });
+
+    testWidgets('failed sign-in shows the error and stays on login', (
+      tester,
+    ) async {
+      await pumpApp(tester, dataSource: _FailingAuthDataSource());
+
+      await enterFields(tester, ['user@example.com', 'secret1']);
+      await tapText(tester, _en('sign_in'));
+      await settleAuth(tester);
+
+      expect(find.textContaining('Invalid credentials'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+    });
+
+    testWidgets('Google sign-in opens home', (tester) async {
+      await pumpApp(tester);
+
+      await tapText(tester, _en('google_sign_in'));
+      await settleAuth(tester);
+
+      expectOnHomeWithNoWayBack(tester);
+    });
+
+    testWidgets('skip opens home', (tester) async {
+      await pumpApp(tester);
+
+      await tapText(tester, _en('skip_for_now'));
+
+      expectOnHomeWithNoWayBack(tester);
     });
   });
+
+
 }
