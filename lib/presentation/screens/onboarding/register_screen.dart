@@ -8,7 +8,11 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_navigation.dart';
+import '../../utils/auth_snackbar.dart';
+import '../../widgets/password_strength_indicator.dart';
 import '../../widgets/pharma_find_logo.dart';
+import '../../widgets/terms_checkbox.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -25,6 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _agreedToTerms = false;
+  String _passwordText = '';
 
   @override
   void dispose() {
@@ -36,6 +42,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _handleRegister() {
+    if (!_agreedToTerms) {
+      AuthSnackbar.showError(
+        context,
+        'Please agree to the Terms of Service',
+      );
+      return;
+    }
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthBloc>().add(
         AuthRegisterRequested(
@@ -54,14 +67,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          AuthNavigation.toHome(context);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.errorRed,
-            ),
-          );
+          AuthSnackbar.showError(context, state.message);
         }
       },
       child: Scaffold(
@@ -139,6 +147,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     validator: Validators.validatePassword,
+                    onChanged: (value) =>
+                        setState(() => _passwordText = value),
                     decoration: InputDecoration(
                       hintText: AppStrings.get('password_hint', locale),
                       prefixIcon: const Icon(Icons.lock_outline, size: 20),
@@ -155,6 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
+                  PasswordStrengthIndicator(password: _passwordText),
                   const SizedBox(height: 18),
                   _buildLabel(AppStrings.get('confirm_password', locale)),
                   const SizedBox(height: 6),
@@ -181,7 +192,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 16),
+                  TermsCheckbox(
+                    value: _agreedToTerms,
+                    onChanged: (v) =>
+                        setState(() => _agreedToTerms = v ?? false),
+                    locale: locale,
+                  ),
+                  const SizedBox(height: 20),
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
@@ -225,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: const TextStyle(color: AppColors.textMedium),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => AuthNavigation.backToLogin(context),
                         child: Text(
                           AppStrings.get('sign_in', locale),
                           style: const TextStyle(
