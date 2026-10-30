@@ -8,7 +8,10 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_navigation.dart';
+import '../../utils/auth_snackbar.dart';
 import '../../widgets/pharma_find_logo.dart';
+import '../../widgets/remember_me_checkbox.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -52,20 +56,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          AuthNavigation.toHome(context);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.errorRed,
-            ),
-          );
+          AuthSnackbar.showError(context, state.message);
         } else if (state is AuthPasswordResetSent) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppStrings.get('password_reset_sent', locale)),
-              backgroundColor: AppColors.successGreen,
-            ),
+          AuthSnackbar.showSuccess(
+            context,
+            AppStrings.get('password_reset_sent', locale),
           );
         }
       },
@@ -154,20 +151,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        _showForgotPasswordDialog(context, locale);
-                      },
-                      child: Text(
-                        AppStrings.get('forgot_password', locale),
-                        style: const TextStyle(
-                          color: AppColors.accentOrange,
-                          fontSize: 13,
+                  Row(
+                    children: [
+                      RememberMeCheckbox(
+                        value: _rememberMe,
+                        onChanged: (v) =>
+                            setState(() => _rememberMe = v ?? false),
+                        locale: locale,
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed('/forgot-password');
+                        },
+                        child: Text(
+                          AppStrings.get('forgot_password', locale),
+                          style: const TextStyle(
+                            color: AppColors.accentOrange,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   BlocBuilder<AuthBloc, AuthState>(
@@ -230,9 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: const TextStyle(color: AppColors.textMedium),
                       ),
                       TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamed('/register');
-                        },
+                        onPressed: () => AuthNavigation.toRegister(context),
                         child: Text(
                           AppStrings.get('sign_up', locale),
                           style: const TextStyle(
@@ -244,9 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/home');
-                    },
+                    onPressed: () => AuthNavigation.skipToHome(context),
                     child: Text(
                       AppStrings.get('skip_for_now', locale),
                       style: const TextStyle(
@@ -265,37 +266,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showForgotPasswordDialog(BuildContext context, String locale) {
-    final resetController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(AppStrings.get('forgot_password', locale)),
-        content: TextField(
-          controller: resetController,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            hintText: AppStrings.get('email_hint', locale),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppStrings.get('not_now', locale)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (resetController.text.trim().isNotEmpty) {
-                context.read<AuthBloc>().add(
-                  AuthPasswordResetRequested(email: resetController.text),
-                );
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: Text(AppStrings.get('continue_btn', locale)),
-          ),
-        ],
-      ),
-    );
-  }
 }
