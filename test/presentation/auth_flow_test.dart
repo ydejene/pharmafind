@@ -193,5 +193,28 @@ void main() {
     });
   });
 
+  group('Login', () {
+    testWidgets('empty form shows validation errors and stays put', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+
+      await tapText(tester, _en('sign_in'));
+
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+    });
+
+    testWidgets('valid credentials open home', (tester) async {
+      await pumpApp(tester);
+
+      await enterFields(tester, ['user@example.com', 'secret1']);
+      await tapText(tester, _en('sign_in'));
+      await settleAuth(tester);
+
+      expectOnHomeWithNoWayBack(tester);
+    });
+  });
 
 }
