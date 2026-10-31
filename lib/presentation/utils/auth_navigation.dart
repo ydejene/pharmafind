@@ -26,4 +26,20 @@ class AuthNavigation {
   static void backToLogin(BuildContext context) {
     Navigator.of(context).pushReplacementNamed('/login');
   }
+
+  static void toForgotPassword(BuildContext context) {
+    Navigator.of(context).pushNamed('/forgot-password');
+  }
+
+  static void toEditProfile(BuildContext context) {
+    Navigator.of(context).pushNamed('/edit-profile');
+  }
+
+  static void toDeleteAccount(BuildContext context) {
+    Navigator.of(context).pushNamed('/delete-account');
+  }
+
+  static void toWelcome(BuildContext context) {
+    Navigator.of(context).pushReplacementNamed('/welcome');
+  }
 }
