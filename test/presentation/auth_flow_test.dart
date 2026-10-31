@@ -293,5 +293,43 @@ void main() {
     });
   });
 
+  group('Registration', () {
+    Future<void> openRegister(WidgetTester tester) async {
+      await tapText(tester, _en('sign_up'));
+      expect(find.text(_en('register')), findsOneWidget);
+    }
+
+    testWidgets('mismatched passwords are rejected', (tester) async {
+      await pumpApp(tester);
+      await openRegister(tester);
+
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret2',
+      ]);
+      await tapText(tester, _en('sign_up'));
+
+      expect(find.text('Passwords do not match'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+    });
+
+    testWidgets('valid details open home with login cleared', (tester) async {
+      await pumpApp(tester);
+      await openRegister(tester);
+
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret1',
+      ]);
+      await tapText(tester, _en('sign_up'));
+      await settleAuth(tester);
+
+      expectOnHomeWithNoWayBack(tester);
+    });
+  });
 
 }
