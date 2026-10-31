@@ -7,6 +7,8 @@ import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/screens/alerts/notify_confirmation_screen.dart';
 import 'presentation/screens/alerts/notify_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/onboarding/delete_account_screen.dart';
+import 'presentation/screens/onboarding/edit_profile_screen.dart';
 import 'presentation/screens/onboarding/forgot_password_screen.dart';
 import 'presentation/screens/onboarding/language_screen.dart';
 import 'presentation/screens/onboarding/login_screen.dart';
@@ -50,6 +52,8 @@ class PharmaFindApp extends StatelessWidget {
                 '/login' => const LoginScreen(),
                 '/register' => const RegisterScreen(),
                 '/forgot-password' => const ForgotPasswordScreen(),
+                '/edit-profile' => const EditProfileScreen(),
+                '/delete-account' => const DeleteAccountScreen(),
                 '/home' => const HomeScreen(),
                 '/search-results' => const SearchResultsScreen(),
                 '/pharmacy-detail' => const PharmacyDetailScreen(),
