@@ -193,28 +193,105 @@ void main() {
     });
   });
 
-  group('Login', () {
-    testWidgets('empty form shows validation errors and stays put', (
-      tester,
-    ) async {
+  group('Registration', () {
+    Future<void> openRegister(WidgetTester tester) async {
+      await tapText(tester, _en('sign_up'));
+      expect(find.text(_en('register')), findsOneWidget);
+    }
+
+    testWidgets('mismatched passwords are rejected', (tester) async {
       await pumpApp(tester);
+      await openRegister(tester);
 
-      await tapText(tester, _en('sign_in'));
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret2',
+      ]);
+      await tapText(tester, _en('sign_up'));
 
-      expect(find.text('Email is required'), findsOneWidget);
-      expect(find.text('Password is required'), findsOneWidget);
+      expect(find.text('Passwords do not match'), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
     });
 
-    testWidgets('valid credentials open home', (tester) async {
+    testWidgets('valid details open home with login cleared', (tester) async {
       await pumpApp(tester);
+      await openRegister(tester);
 
-      await enterFields(tester, ['user@example.com', 'secret1']);
-      await tapText(tester, _en('sign_in'));
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret1',
+      ]);
+      await tapText(tester, _en('sign_up'));
       await settleAuth(tester);
 
       expectOnHomeWithNoWayBack(tester);
     });
+
+    testWidgets('failure shows the error and stays on register', (
+      tester,
+    ) async {
+      await pumpApp(tester, dataSource: _FailingAuthDataSource());
+      await openRegister(tester);
+
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret1',
+      ]);
+      await tapText(tester, _en('sign_up'));
+      await settleAuth(tester);
+
+      expect(find.textContaining('Email already in use'), findsOneWidget);
+      expect(find.text(_en('register')), findsOneWidget);
+    });
+
+    testWidgets('the login screen underneath does not navigate as well', (
+      tester,
+    ) async {
+      final routes = _RouteCounter();
+      await pumpApp(
+        tester,
+        app: MaterialApp(
+          navigatorObservers: [routes],
+          home: const LoginScreen(),
+          routes: {
+            '/register': (_) => const RegisterScreen(),
+            '/home': (_) => const Scaffold(),
+          },
+        ),
+      );
+      await openRegister(tester);
+
+      await enterFields(tester, [
+        'Test User',
+        'user@example.com',
+        'secret1',
+        'secret1',
+      ]);
+      await tapText(tester, _en('sign_up'));
+      await settleAuth(tester);
+
+      expect(routes.pushed.where((name) => name == '/home'), hasLength(1));
+    });
+
+    testWidgets('sign-in link returns to the existing login screen', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      await openRegister(tester);
+
+      await tapText(tester, _en('sign_in'));
+
+      expect(find.text(_en('login')), findsOneWidget);
+      final navigator = Navigator.of(tester.element(find.text(_en('login'))));
+      expect(navigator.canPop(), isFalse);
+    });
   });
+
 
 }
