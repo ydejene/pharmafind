@@ -322,5 +322,4 @@ void main() {
       expect(find.text(_en('password_reset_sent')), findsNothing);
     });
   });
-
 }
