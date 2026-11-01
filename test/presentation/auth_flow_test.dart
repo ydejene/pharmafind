@@ -293,42 +293,33 @@ void main() {
     });
   });
 
-  group('Registration', () {
-    Future<void> openRegister(WidgetTester tester) async {
-      await tapText(tester, _en('sign_up'));
-      expect(find.text(_en('register')), findsOneWidget);
-    }
-
-    testWidgets('mismatched passwords are rejected', (tester) async {
+  group('Forgot password', () {
+    testWidgets('sends the reset and returns to login', (tester) async {
       await pumpApp(tester);
-      await openRegister(tester);
 
-      await enterFields(tester, [
-        'Test User',
-        'user@example.com',
-        'secret1',
-        'secret2',
-      ]);
-      await tapText(tester, _en('sign_up'));
+      await tapText(tester, _en('forgot_password'));
+      expect(find.text(_en('forgot_password_sub')), findsOneWidget);
 
-      expect(find.text('Passwords do not match'), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
-    });
-
-    testWidgets('valid details open home with login cleared', (tester) async {
-      await pumpApp(tester);
-      await openRegister(tester);
-
-      await enterFields(tester, [
-        'Test User',
-        'user@example.com',
-        'secret1',
-        'secret1',
-      ]);
-      await tapText(tester, _en('sign_up'));
+      await enterFields(tester, ['user@example.com']);
+      await tapText(tester, _en('continue_btn'));
       await settleAuth(tester);
 
-      expectOnHomeWithNoWayBack(tester);
+      expect(find.text(_en('password_reset_sent')), findsOneWidget);
+
+      await tapText(tester, _en('sign_in'));
+
+      expect(find.text(_en('login')), findsOneWidget);
+    });
+
+    testWidgets('invalid email is rejected', (tester) async {
+      await pumpApp(tester);
+
+      await tapText(tester, _en('forgot_password'));
+      await enterFields(tester, ['not-an-email']);
+      await tapText(tester, _en('continue_btn'));
+
+      expect(find.text('Please enter a valid email'), findsOneWidget);
+      expect(find.text(_en('password_reset_sent')), findsNothing);
     });
   });
 
