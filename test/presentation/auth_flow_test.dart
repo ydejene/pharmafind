@@ -141,6 +141,46 @@ void main() {
     expect(navigator.canPop(), isFalse);
   }
 
+  group('Language selection and onboarding', () {
+    testWidgets('first launch opens language selection', (tester) async {
+      await pumpApp(tester, seenOnboarding: false);
+
+      expect(find.text(_en('choose_language')), findsOneWidget);
+      expect(find.text('Kinyarwanda'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(find.text('Français'), findsOneWidget);
+    });
+
+    testWidgets('selecting a language translates the screen', (tester) async {
+      await pumpApp(tester, seenOnboarding: false);
+
+      await tapText(tester, 'Français');
+
+      expect(settingsCubit.state.locale, 'fr');
+      expect(
+        find.text(AppStrings.get('choose_language', 'fr')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('continue marks onboarding seen and opens login', (
+      tester,
+    ) async {
+      await pumpApp(tester, seenOnboarding: false);
+
+      await tapText(tester, _en('continue_btn'));
+
+      expect(settingsCubit.state.hasSeenOnboarding, isTrue);
+      expect(find.text(_en('login')), findsOneWidget);
+    });
+
+    testWidgets('returning user goes straight to login', (tester) async {
+      await pumpApp(tester);
+
+      expect(find.text(_en('login')), findsOneWidget);
+    });
+  });
+
   group('Login', () {
     testWidgets('empty form shows validation errors and stays put', (
       tester,
