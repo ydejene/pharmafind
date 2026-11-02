@@ -180,6 +180,7 @@ class AppStrings {
     'name_hint': 'Enter your full name',
     'confirm_password_hint': 'Re-enter your password',
     'password_reset_sent': 'Password reset email sent',
+    'forgot_password_sub': 'Enter your email address and we\'ll send you a link to reset your password.',
     'password_reset_desc':
         'Check your inbox for a link to reset your password.',
     'ok': 'OK',
@@ -426,6 +427,7 @@ class AppStrings {
     'name_hint': 'Andika amazina yawe yombi',
     'confirm_password_hint': 'Ongera wandike ijambo ry\'ibanga',
     'password_reset_sent': 'Imeyili yo guhindura ijambo ry\'ibanga yoherejwe',
+    'forgot_password_sub': 'Andika imeyili yawe tukoherereze umurongo wo guhindura ijambo ry\'ibanga.',
     'password_reset_desc':
         'Reba mu bubiko bw\'imeyili yawe kugira ngo ubone link yo guhindura.',
     'ok': 'Yego',
@@ -676,6 +678,7 @@ class AppStrings {
     'name_hint': 'Entrez votre nom complet',
     'confirm_password_hint': 'Ressaisissez votre mot de passe',
     'password_reset_sent': 'E-mail de réinitialisation envoyé',
+    'forgot_password_sub': 'Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.',
     'password_reset_desc':
         'Vérifiez votre boîte de réception pour un lien de réinitialisation.',
     'ok': 'OK',

@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
+import 'presentation/screens/onboarding/forgot_password_screen.dart';
+import 'presentation/screens/onboarding/login_screen.dart';
+import 'presentation/screens/onboarding/register_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
@@ -25,17 +28,21 @@ class PharmaFindApp extends StatelessWidget {
               settings: routeSettings,
               builder: (context) => switch (routeSettings.name) {
                 '/' => const SplashScreen(),
-                // Temporary foundation stubs for splash navigation targets.
-                // Feature owners replace these with LanguageScreen() and LoginScreen().
+                // Temporary stub until language selection lands.
                 '/language' => _buildPlaceholderScreen(
                   context,
                   title: 'Language Selection',
                   routeName: '/language',
                 ),
-                '/login' => _buildPlaceholderScreen(
+                '/login' => const LoginScreen(),
+                '/register' => const RegisterScreen(),
+                '/forgot-password' => const ForgotPasswordScreen(),
+                // Temporary stub for the post-auth navigation target.
+                // The home screen owner replaces this with HomeScreen().
+                '/home' => _buildPlaceholderScreen(
                   context,
-                  title: 'Login',
-                  routeName: '/login',
+                  title: 'Home',
+                  routeName: '/home',
                 ),
                 _ => Scaffold(
                   body: Center(
