@@ -8,6 +8,11 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_navigation.dart';
+import '../../utils/auth_snackbar.dart';
+import '../../widgets/auth_header.dart';
+import '../../widgets/auth_submit_button.dart';
+import '../../widgets/auth_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleGoogleSignIn() {
-    context.read<AuthBloc>().add(const AuthGoogleSignInRequested());
+    context.read<AuthBloc>().add(AuthGoogleSignInRequested());
   }
 
   @override
@@ -49,17 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final locale = context.watch<SettingsCubit>().state.locale;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // This screen stays mounted under /register and /forgot-password, so
+      // only react while it is on top.
+      listenWhen: (_, _) => ModalRoute.isCurrentOf(context) ?? false,
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          AuthNavigation.toHome(context);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AuthSnackbar.showError(context, state.message);
         }
       },
       builder: (context, state) {
@@ -74,53 +76,39 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 60),
-                    Text(
-                      AppStrings.get('login', locale),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const SizedBox(height: 40),
+                    AuthHeader(
+                      eyebrow: AppStrings.get('welcome', locale),
+                      title: AppStrings.get('login', locale),
                     ),
                     const SizedBox(height: 32),
-                    TextFormField(
+                    AuthTextField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.get('email', locale),
-                        hintText: AppStrings.get('email_hint', locale),
-                        prefixIcon: const Icon(Icons.email_outlined),
-                      ),
+                      label: AppStrings.get('email', locale),
+                      hint: AppStrings.get('email_hint', locale),
+                      prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: Validators.validateEmail,
-                      textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 20),
-                    TextFormField(
+                    AuthTextField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.get('password', locale),
-                        hintText: AppStrings.get('password_hint', locale),
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
-                          onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
+                      label: AppStrings.get('password', locale),
+                      hint: AppStrings.get('password_hint', locale),
+                      prefixIcon: Icons.lock_outline,
                       obscureText: _obscurePassword,
+                      onToggleObscure: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
                       validator: Validators.validatePassword,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleLogin(),
                     ),
-                    const SizedBox(height: 12),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed('/forgot-password'),
+                        onPressed: () =>
+                            AuthNavigation.toForgotPassword(context),
                         child: Text(
                           AppStrings.get('forgot_password', locale),
                           style: const TextStyle(
@@ -130,53 +118,65 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _handleLogin,
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(AppStrings.get('sign_in', locale)),
-                      ),
+                    const SizedBox(height: 8),
+                    AuthSubmitButton(
+                      label: AppStrings.get('sign_in', locale),
+                      isLoading: isLoading,
+                      onPressed: _handleLogin,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Divider(color: AppColors.borderLight),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            AppStrings.get('or_continue_with', locale),
+                            style: const TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        const Expanded(
+                          child: Divider(color: AppColors.borderLight),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                     SizedBox(
                       height: 52,
                       child: OutlinedButton.icon(
                         onPressed: isLoading ? null : _handleGoogleSignIn,
-                        icon: const Icon(Icons.g_mobiledata, size: 24),
-                        label: Text(
-                            AppStrings.get('sign_in_with_google', locale)),
+                        icon: const Icon(Icons.g_mobiledata, size: 28),
+                        label: Text(AppStrings.get('google_sign_in', locale)),
                       ),
                     ),
                     const SizedBox(height: 24),
                     Wrap(
                       alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           AppStrings.get('no_account', locale),
                           style: const TextStyle(color: AppColors.textLight),
                         ),
                         TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/register'),
+                          onPressed: () => AuthNavigation.toRegister(context),
                           child: Text(
                             AppStrings.get('sign_up', locale),
                             style: const TextStyle(
-                                color: AppColors.accentOrange),
+                              color: AppColors.accentOrange,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     TextButton(
-                      onPressed: () => Navigator.of(context)
-                          .pushReplacementNamed('/home'),
+                      onPressed: () => AuthNavigation.toHome(context),
                       child: Text(
                         AppStrings.get('skip_for_now', locale),
                         style: const TextStyle(
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
