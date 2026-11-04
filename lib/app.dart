@@ -4,10 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
-import 'presentation/screens/onboarding/forgot_password_screen.dart';
-import 'presentation/screens/onboarding/language_screen.dart';
-import 'presentation/screens/onboarding/login_screen.dart';
-import 'presentation/screens/onboarding/register_screen.dart';
+import 'presentation/screens/onboarding/onboarding.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
@@ -45,5 +42,4 @@ class PharmaFindApp extends StatelessWidget {
       },
     );
   }
-
 }
