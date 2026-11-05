@@ -8,4 +8,5 @@ class AuthRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String partnerSignup = '/partner-signup';
+  static const String profile = '/profile';
 }
