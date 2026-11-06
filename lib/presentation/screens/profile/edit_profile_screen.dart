@@ -6,6 +6,7 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../widgets/auth_header.dart';
+import '../../../core/utils/input_formatters.dart';
 import '../../widgets/auth_text_field.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -70,6 +71,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hint: '+250 7XX XXX XXX',
                   prefixIcon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
+                  validator: RwandaPhoneValidator.validate,
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
