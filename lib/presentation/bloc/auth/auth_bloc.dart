@@ -35,6 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPasswordResetRequested>(_onPasswordReset);
     on<AuthLogoutRequested>(_onLogout);
     on<AuthProfileUpdateRequested>(_onProfileUpdate);
+    on<AuthSignOutRequested>(_onSignOut);
   }
 
   Future<void> _onCheckRequested(
@@ -132,5 +133,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       emit(AuthError(e.toString()));
     }
+  }
+
+  Future<void> _onSignOut(
+    AuthSignOutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    await signOut();
+    emit(AuthUnauthenticated());
   }
 }
