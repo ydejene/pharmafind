@@ -78,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
                 _MenuTile(
                   icon: Icons.person_outline,
                   title: AppStrings.get('edit_profile', locale),
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).pushNamed('/edit-profile'),
                 ),
                 _MenuTile(
                   icon: Icons.shield_outlined,
