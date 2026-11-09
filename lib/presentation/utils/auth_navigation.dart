@@ -1,31 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/auth_routes.dart';
-
-/// Centralised navigation helpers for the authentication flow.
-///
-/// Every screen uses these instead of hard-coding route strings, so renaming
-/// a route only requires a change here.
 class AuthNavigation {
   AuthNavigation._();
 
   static void toLogin(BuildContext context) {
-    Navigator.of(context).pushReplacementNamed(AuthRoutes.login);
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   static void toRegister(BuildContext context) {
-    Navigator.of(context).pushNamed(AuthRoutes.register);
+    Navigator.of(context).pushNamed('/register');
   }
 
   static void toForgotPassword(BuildContext context) {
-    Navigator.of(context).pushNamed(AuthRoutes.forgotPassword);
+    Navigator.of(context).pushNamed('/forgot-password');
   }
 
+  // Clears the auth screens so the back button can't return to them.
   static void toHome(BuildContext context) {
-    Navigator.of(context).pushNamedAndRemoveUntil(AuthRoutes.home, (_) => false);
-  }
-
-  static void toLanguage(BuildContext context) {
-    Navigator.of(context).pushReplacementNamed(AuthRoutes.language);
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
   }
 }
