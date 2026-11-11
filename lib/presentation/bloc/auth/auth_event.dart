@@ -63,3 +63,5 @@ class AuthProfileUpdateRequested extends AuthEvent {
   @override
   List<Object?> get props => [insuranceProvider, insuranceId, phone];
 }
+
+class AuthSignOutRequested extends AuthEvent {}
