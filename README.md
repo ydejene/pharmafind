@@ -38,9 +38,10 @@ PharmaFind is a Flutter mobile application that helps users locate prescribed me
 
 ### Firebase setup
 
-The app is configured for the Firebase project `pharmafind-6e48a` on Android and
-Web. The generated `lib/firebase_options.dart` and
-`android/app/google-services.json` files are required for local builds.
+The app is configured for the Firebase project `pharmafind-6e48a` on Android,
+iOS, and Web. The generated `lib/firebase_options.dart`,
+`android/app/google-services.json`, and `ios/Runner/GoogleService-Info.plist`
+files are required for local builds.
 
 In the Firebase Console for this project:
 
