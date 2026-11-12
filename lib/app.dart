@@ -5,6 +5,7 @@ import 'core/constants/app_strings.dart';
 import 'core/constants/auth_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
+import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/onboarding/onboarding.dart';
 import 'presentation/screens/profile/edit_profile_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
@@ -33,6 +34,7 @@ class PharmaFindApp extends StatelessWidget {
                 AuthRoutes.login => const LoginScreen(),
                 AuthRoutes.register => const RegisterScreen(),
                 AuthRoutes.forgotPassword => const ForgotPasswordScreen(),
+                AuthRoutes.home => const HomeScreen(),
                 AuthRoutes.profile => const ProfileScreen(),
                 '/edit-profile' => const EditProfileScreen(),
                 _ => Scaffold(
