@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../bloc/settings/settings_cubit.dart';
-import '../../widgets/pharma_find_logo.dart';
+import '../../widgets/pharmafind_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

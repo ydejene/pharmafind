@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/core/utils/email_utils.dart';
+import 'package:pharmafind/core/utils/email_utils.dart';
 
 void main() {
   group('EmailUtils', () {

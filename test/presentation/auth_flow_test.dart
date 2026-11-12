@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/app.dart';
-import 'package:pharma_find/core/constants/app_strings.dart';
-import 'package:pharma_find/data/datasources/auth_datasource.dart';
-import 'package:pharma_find/data/datasources/mock_auth_datasource.dart';
-import 'package:pharma_find/data/models/user_model.dart';
-import 'package:pharma_find/presentation/bloc/settings/settings_cubit.dart';
-import 'package:pharma_find/presentation/screens/home/home_screen.dart';
-import 'package:pharma_find/presentation/screens/onboarding/login_screen.dart';
-import 'package:pharma_find/presentation/screens/onboarding/register_screen.dart';
+import 'package:pharmafind/app.dart';
+import 'package:pharmafind/core/constants/app_strings.dart';
+import 'package:pharmafind/data/datasources/auth_datasource.dart';
+import 'package:pharmafind/data/datasources/mock_auth_datasource.dart';
+import 'package:pharmafind/data/models/user_model.dart';
+import 'package:pharmafind/presentation/bloc/settings/settings_cubit.dart';
+import 'package:pharmafind/presentation/screens/home/home_screen.dart';
+import 'package:pharmafind/presentation/screens/onboarding/login_screen.dart';
+import 'package:pharmafind/presentation/screens/onboarding/register_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_providers.dart';

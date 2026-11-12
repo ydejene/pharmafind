@@ -1,18 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/data/datasources/mock_auth_datasource.dart';
-import 'package:pharma_find/data/repositories/auth_repository_impl.dart';
-import 'package:pharma_find/domain/usecases/auth/get_current_user_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/register_with_email_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/send_password_reset_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/sign_in_with_email_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/sign_in_with_google_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/sign_out_usecase.dart';
-import 'package:pharma_find/domain/usecases/auth/update_user_profile_usecase.dart';
-import 'package:pharma_find/presentation/bloc/auth/auth_bloc.dart';
-import 'package:pharma_find/presentation/bloc/auth/auth_event.dart';
-import 'package:pharma_find/presentation/bloc/auth/auth_state.dart';
+import 'package:pharmafind/data/datasources/mock_auth_datasource.dart';
+import 'package:pharmafind/data/repositories/auth_repository_impl.dart';
+import 'package:pharmafind/domain/usecases/auth/get_current_user_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/register_with_email_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/send_password_reset_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/sign_in_with_email_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/sign_in_with_google_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/sign_out_usecase.dart';
+import 'package:pharmafind/domain/usecases/auth/update_user_profile_usecase.dart';
+import 'package:pharmafind/presentation/bloc/auth/auth_bloc.dart';
+import 'package:pharmafind/presentation/bloc/auth/auth_event.dart';
+import 'package:pharmafind/presentation/bloc/auth/auth_state.dart';
 
 AuthBloc _buildBloc() {
   final repo = AuthRepositoryImpl(datasource: MockAuthDataSource());

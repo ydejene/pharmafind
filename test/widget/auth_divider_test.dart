@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/presentation/widgets/auth_divider.dart';
+import 'package:pharmafind/presentation/widgets/auth_divider.dart';
 
 void main() {
   group('AuthDivider', () {

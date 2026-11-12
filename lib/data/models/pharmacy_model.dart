@@ -70,6 +70,15 @@ class PharmacyModel extends Equatable {
   }
 
   factory PharmacyModel.fromMap(Map<String, dynamic> data, String id) {
+    final createdAtValue = data['createdAt'];
+    final createdAt = createdAtValue is DateTime
+        ? createdAtValue
+        : createdAtValue is String
+        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
+        : (createdAtValue != null
+              ? (createdAtValue as dynamic).toDate() as DateTime
+              : DateTime.now());
+
     return PharmacyModel(
       id: id,
       name: data['name'] ?? '',
@@ -83,11 +92,7 @@ class PharmacyModel extends Equatable {
       ownerId: data['ownerId'] ?? '',
       status: data['status'] ?? 'pending',
       acceptsInsurance: data['acceptsInsurance'] ?? true,
-      createdAt: data['createdAt'] is DateTime
-          ? data['createdAt']
-          : (data['createdAt'] is String
-                ? DateTime.tryParse(data['createdAt']) ?? DateTime.now()
-                : DateTime.now()),
+      createdAt: createdAt,
     );
   }
 

@@ -36,7 +36,7 @@ class TermsCheckbox extends StatelessWidget {
             TextSpan(
               style: const TextStyle(fontSize: 13, color: AppColors.textLight),
               children: [
-                TextSpan(text: '${AppStrings.get('accept_terms', locale).split(AppStrings.get('terms_link', locale)).first}'),
+                TextSpan(text: AppStrings.get('accept_terms', locale).split(AppStrings.get('terms_link', locale)).first),
                 TextSpan(
                   text: AppStrings.get('terms_link', locale),
                   style: const TextStyle(

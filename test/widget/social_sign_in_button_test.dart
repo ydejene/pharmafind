@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/presentation/widgets/social_sign_in_button.dart';
+import 'package:pharmafind/presentation/widgets/social_sign_in_button.dart';
 
 void main() {
   group('SocialSignInButton', () {

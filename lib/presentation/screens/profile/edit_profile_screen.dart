@@ -5,7 +5,6 @@ import '../../../core/constants/app_strings.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
-import '../../widgets/auth_header.dart';
 import '../../../core/utils/input_formatters.dart';
 import '../../widgets/auth_text_field.dart';
 

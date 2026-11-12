@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
-import 'pharma_find_logo.dart';
+import 'pharmafind_logo.dart';
 
 class AuthHeader extends StatelessWidget {
   final String? eyebrow;

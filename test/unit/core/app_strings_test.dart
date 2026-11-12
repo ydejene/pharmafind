@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/core/constants/app_strings.dart';
+import 'package:pharmafind/core/constants/app_strings.dart';
 
 void main() {
   group('AppStrings', () {

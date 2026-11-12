@@ -1,0 +1,26 @@
+{
+	"flutter": {
+		"platforms": {
+			"android": {
+				"default": {
+					"projectId": "pharmafind-6e48a",
+					"appId": "1:356626863886:android:6706e72f9b9ea1f9e1e95f",
+					"fileOutput": "android/app/google-services.json"
+				}
+			},
+			"dart": {
+				"lib/firebase_options.dart": {
+					"projectId": "pharmafind-6e48a",
+					"configurations": {
+						"android": "1:356626863886:android:6706e72f9b9ea1f9e1e95f",
+						"web": "1:356626863886:web:e57596f62b080b88e1e95f"
+					}
+				}
+			}
+		}
+	},
+	"firestore": {
+		"rules": "firestore.rules",
+		"indexes": "firestore.indexes.json"
+	}
+}

@@ -50,6 +50,15 @@ class UserModel extends Equatable {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> data, String id) {
+    final createdAtValue = data['createdAt'];
+    final createdAt = createdAtValue is DateTime
+        ? createdAtValue
+        : createdAtValue is String
+        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
+        : (createdAtValue != null
+              ? (createdAtValue as dynamic).toDate() as DateTime
+              : DateTime.now());
+
     return UserModel(
       uid: id,
       email: data['email'] ?? '',
@@ -58,11 +67,7 @@ class UserModel extends Equatable {
       insuranceProvider: data['insuranceProvider'],
       insuranceId: data['insuranceId'],
       phone: data['phone'],
-      createdAt: data['createdAt'] is DateTime
-          ? data['createdAt']
-          : (data['createdAt'] is String
-                ? DateTime.tryParse(data['createdAt']) ?? DateTime.now()
-                : DateTime.now()),
+      createdAt: createdAt,
     );
   }
 
