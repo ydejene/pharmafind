@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "356626863886",
+    "project_id": "pharmafind-6e48a",
+    "storage_bucket": "pharmafind-6e48a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356626863886:android:6706e72f9b9ea1f9e1e95f",
+        "android_client_info": {
+          "package_name": "com.example.pharmafind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxKhJanDn9m8Y6-hQUFJxl3O6h3ul2NpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

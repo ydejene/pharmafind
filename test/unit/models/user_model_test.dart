@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/data/models/user_model.dart';
+import 'package:pharmafind/data/models/user_model.dart';
 
 void main() {
   group('UserModel', () {
