@@ -124,6 +124,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final updatedUser = currentState.user.copyWith(
+        displayName: event.displayName,
         insuranceProvider: event.insuranceProvider,
         insuranceId: event.insuranceId,
         phone: event.phone,

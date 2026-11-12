@@ -50,18 +50,25 @@ class AuthPasswordResetRequested extends AuthEvent {
 class AuthLogoutRequested extends AuthEvent {}
 
 class AuthProfileUpdateRequested extends AuthEvent {
+  final String? displayName;
   final String? insuranceProvider;
   final String? insuranceId;
   final String? phone;
 
   const AuthProfileUpdateRequested({
+    this.displayName,
     this.insuranceProvider,
     this.insuranceId,
     this.phone,
   });
 
   @override
-  List<Object?> get props => [insuranceProvider, insuranceId, phone];
+  List<Object?> get props => [
+    displayName,
+    insuranceProvider,
+    insuranceId,
+    phone,
+  ];
 }
 
 class AuthSignOutRequested extends AuthEvent {}
