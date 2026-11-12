@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -64,5 +61,14 @@ class DefaultFirebaseOptions {
     messagingSenderId: '356626863886',
     projectId: 'pharmafind-6e48a',
     storageBucket: 'pharmafind-6e48a.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDk16_0NTX8BZDimFzrqaWWHAllNgP1Uws',
+    appId: '1:356626863886:ios:cc0d5023a887c016e1e95f',
+    messagingSenderId: '356626863886',
+    projectId: 'pharmafind-6e48a',
+    storageBucket: 'pharmafind-6e48a.firebasestorage.app',
+    iosBundleId: 'com.example.pharmafind',
   );
 }

@@ -13,6 +13,7 @@
 					"projectId": "pharmafind-6e48a",
 					"configurations": {
 						"android": "1:356626863886:android:6706e72f9b9ea1f9e1e95f",
+								"ios": "1:356626863886:ios:cc0d5023a887c016e1e95f",
 						"web": "1:356626863886:web:e57596f62b080b88e1e95f"
 					}
 				}
