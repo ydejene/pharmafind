@@ -27,7 +27,7 @@ import 'package:pharmafind/presentation/bloc/auth/auth_bloc.dart';
 import 'package:pharmafind/presentation/bloc/auth/auth_event.dart';
 import 'package:pharmafind/presentation/bloc/auth/auth_state.dart';
 import 'package:pharmafind/presentation/bloc/settings/settings_cubit.dart';
-import 'package:pharmafind/presentation/widgets/pharma_find_logo.dart';
+import 'package:pharmafind/presentation/widgets/pharmafind_logo.dart';
 
 class _FailingAuthDataSource implements IAuthDataSource {
   @override

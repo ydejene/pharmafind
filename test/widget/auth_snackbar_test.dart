@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/presentation/utils/auth_snackbar.dart';
+import 'package:pharmafind/presentation/utils/auth_snackbar.dart';
 
 void main() {
   group('AuthSnackbar', () {

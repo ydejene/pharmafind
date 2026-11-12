@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pharma_find/core/constants/app_strings.dart';
-import 'package:pharma_find/presentation/screens/splash/splash_screen.dart';
+import 'package:pharmafind/core/constants/app_strings.dart';
+import 'package:pharmafind/presentation/screens/splash/splash_screen.dart';
 
 import '../helpers/test_providers.dart';
 
