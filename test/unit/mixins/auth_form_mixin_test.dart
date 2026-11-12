@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/presentation/mixins/auth_form_mixin.dart';
+import 'package:pharmafind/presentation/mixins/auth_form_mixin.dart';
 
 class _TestWidget extends StatefulWidget {
   const _TestWidget();

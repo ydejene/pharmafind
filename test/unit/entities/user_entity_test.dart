@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/domain/entities/user_entity.dart';
+import 'package:pharmafind/domain/entities/user_entity.dart';
 
 void main() {
   group('UserEntity', () {

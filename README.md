@@ -9,7 +9,7 @@ PharmaFind is a Flutter mobile application that helps users locate prescribed me
 - **Backend:** Firebase
 - **Database:** Cloud Firestore
 - **State Management:** BLoC / Cubit
-- **Platforms:** Android and iOS
+- **Platforms:** Android and Web
 
 ## Getting Started
 
@@ -36,7 +36,28 @@ PharmaFind is a Flutter mobile application that helps users locate prescribed me
    flutter run
    ```
 
-Firebase configuration instructions will be added when the Firebase integration is established.
+### Firebase setup
+
+The app is configured for the Firebase project `pharmafind-6e48a` on Android and
+Web. The generated `lib/firebase_options.dart` and
+`android/app/google-services.json` files are required for local builds.
+
+In the Firebase Console for this project:
+
+1. Enable **Authentication > Sign-in method > Email/Password**.
+2. Enable **Authentication > Sign-in method > Google**.
+3. Create a Cloud Firestore database.
+4. Deploy the rules in `firestore.rules`, or apply equivalent rules in the
+  Firestore Rules tab.
+
+User profiles are stored at `users/{uid}`. Email registration, email login,
+password reset, Google login, sign-out, and profile updates use Firebase Auth
+and Firestore through the existing auth use cases and `AuthBloc`.
+
+The Firestore pharmacy repository is available through the app provider tree.
+The initial database seed contains four approved pharmacies in `pharmacies`
+and eight stock records in `stock`. Medicine search uses the normalized
+`medicineNameLower` field for prefix queries.
 
 ## Project Structure
 
@@ -53,7 +74,7 @@ lib/
 │   ├── repositories/      # Abstract repository interfaces (IAuthRepository, ISettingsRepository, etc.)
 │   └── usecases/          # Granular use cases for Auth and Settings operations
 ├── data/                  # Data access, persistence, and external service adapters
-│   ├── datasources/       # Physical data sources (MockAuthDataSource, SharedPreferencesSettingsDataSource)
+│   ├── datasources/       # Firebase Auth/Firestore and local data sources
 │   ├── models/            # Data models with explicit toEntity()/fromEntity() and JSON/Map mapping
 │   └── repositories/      # Repository implementations connecting use cases to datasources
 └── presentation/          # User interface and state management
@@ -94,8 +115,9 @@ flutter test
   - Project structure and clean architecture layers established.
   - Core domain entities, repository contracts, and use cases.
   - Data models with explicit entity mapping and serialization.
-  - Mock authentication data source, repository, use cases, and `AuthBloc`.
+  - Firebase authentication data source, Firestore user profiles, repository,
+    use cases, and `AuthBloc`.
   - Settings pipeline with `SharedPreferencesSettingsDataSource`, repository, use cases, and `SettingsCubit`.
   - Application entry (`main.dart`), theme switching, and splash screen with route stubs (`/login`, `/language`).
   - Unit and widget test suite covering models, settings, authentication, and UI branding.
-- **Next Stage:** Feature development (authentication screens, pharmacy listing, medicine search, and Firebase integration).
+- **Next Stage:** Feature development (pharmacy listing and medicine search).
