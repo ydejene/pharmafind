@@ -5,7 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../bloc/search/search_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
-import '../../widgets/pharma_find_logo.dart';
+import '../../widgets/pharmafind_logo.dart';
 import '../../widgets/pharmacy_card.dart';
 
 class SearchResultsScreen extends StatelessWidget {

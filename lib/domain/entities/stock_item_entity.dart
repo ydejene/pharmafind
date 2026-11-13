@@ -31,6 +31,17 @@ class StockItemEntity extends Equatable {
     required this.updatedAt,
   });
 
+  String get formattedPrice =>
+      'RWF ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},')}';
+
+  String get timeAgo {
+    final diff = DateTime.now().difference(updatedAt);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+    if (diff.inHours < 24) return '${diff.inHours} hr ago';
+    return '${diff.inDays} days ago';
+  }
+
   bool get isInStock => status == 'in_stock';
   bool get isLowStock => status == 'low_stock';
   bool get isOutOfStock => status == 'out_of_stock';
