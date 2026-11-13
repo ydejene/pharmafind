@@ -25,6 +25,7 @@ import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_stock_usecase.d
 import 'package:pharmafind/domain/usecases/pharmacy/search_medicine_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_stock_item_usecase.dart';
+import 'package:pharmafind/domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
 import 'package:pharmafind/domain/usecases/settings/get_settings_usecase.dart';
 import 'package:pharmafind/domain/usecases/settings/mark_onboarding_seen_usecase.dart';
 import 'package:pharmafind/domain/usecases/settings/set_app_updates_usecase.dart';
@@ -100,6 +101,9 @@ Widget withTestProviders({
           addStockItemUseCase: AddStockItemUseCase(pharmacyRepository),
           updateStockItemUseCase: UpdateStockItemUseCase(pharmacyRepository),
           deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
+          watchPharmacyStockUseCase: WatchPharmacyStockUseCase(
+            pharmacyRepository,
+          ),
         ),
       ),
       BlocProvider<AlertCubit>(
