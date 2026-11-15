@@ -1,4 +1,8 @@
 export 'onboarding/onboarding.dart';
 export 'home/home_screen.dart';
+export 'partner/partner_signup_screen.dart';
+export 'partner/partner_license_screen.dart';
+export 'partner/partner_pending_screen.dart';
+export 'partner/partner_rejected_screen.dart';
 export 'profile/profile.dart';
 export 'splash/splash_screen.dart';
