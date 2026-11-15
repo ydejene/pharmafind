@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/auth_routes.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
@@ -25,7 +26,6 @@ class PartnerPendingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = context.watch<SettingsCubit>().state.locale;
-    final authState = context.watch<AuthBloc>().state;
     final pharmacyState = context.watch<PharmacyCubit>().state;
     final pharmacy = pharmacyState.pharmacy;
     final hasPersistedRecord = pharmacy != null;
@@ -161,14 +161,8 @@ class PartnerPendingScreen extends StatelessWidget {
                           .state
                           .pharmacy;
                       if (updated?.status == 'approved') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Pharmacy approved! Dashboard available in Stage 4.',
-                            ),
-                            backgroundColor: AppColors.successGreen,
-                          ),
-                        );
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerDashboard);
                       } else if (updated?.status == 'rejected') {
                         Navigator.of(context)
                             .pushReplacementNamed('/partner-rejected');
