@@ -21,10 +21,7 @@ service cloud.firestore {
     }
 
     match /pharmacies/{pharmacyId} {
-      allow read: if signedIn()
-        && (resource.data.status == 'approved'
-          || isOwner(resource.data.ownerId)
-          || isAdmin());
+      allow read: if signedIn();
       allow create: if isOwner(request.resource.data.ownerId) || isAdmin();
       allow update, delete: if isOwner(resource.data.ownerId) || isAdmin();
     }
