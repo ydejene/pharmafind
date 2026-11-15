@@ -70,6 +70,15 @@ class StockItemModel extends Equatable {
   }
 
   factory StockItemModel.fromMap(Map<String, dynamic> data, String id) {
+    final updatedAtValue = data['updatedAt'];
+    final updatedAt = updatedAtValue is DateTime
+        ? updatedAtValue
+        : updatedAtValue is String
+        ? DateTime.tryParse(updatedAtValue) ?? DateTime.now()
+        : (updatedAtValue != null
+              ? (updatedAtValue as dynamic).toDate() as DateTime
+              : DateTime.now());
+
     return StockItemModel(
       id: id,
       pharmacyId: data['pharmacyId'] ?? '',
@@ -83,11 +92,7 @@ class StockItemModel extends Equatable {
       status: data['status'] ?? 'in_stock',
       quantity: data['quantity'] ?? 0,
       price: (data['price'] as num?)?.toInt() ?? 0,
-      updatedAt: data['updatedAt'] is DateTime
-          ? data['updatedAt']
-          : (data['updatedAt'] is String
-                ? DateTime.tryParse(data['updatedAt']) ?? DateTime.now()
-                : DateTime.now()),
+      updatedAt: updatedAt,
     );
   }
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pharma_find/core/utils/input_formatters.dart';
+import 'package:pharmafind/core/utils/input_formatters.dart';
 
 void main() {
   group('RwandaPhoneValidator', () {

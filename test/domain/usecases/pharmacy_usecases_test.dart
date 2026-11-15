@@ -9,6 +9,7 @@ import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_by_owner_usecas
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_stock_item_usecase.dart';
+import 'package:pharmafind/domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
 
 class _FakePharmacyRepository implements IPharmacyRepository {
   PharmacyEntity? pharmacyToReturn;
@@ -23,6 +24,8 @@ class _FakePharmacyRepository implements IPharmacyRepository {
   String? lastDeletedStockId;
   String? lastQueriedOwnerId;
   String? lastQueriedPharmacyId;
+  String? lastWatchedPharmacyId;
+  Stream<List<StockItemEntity>>? streamToReturn;
 
   @override
   Future<PharmacyEntity?> getPharmacyByOwner(String ownerId) async {
@@ -76,8 +79,10 @@ class _FakePharmacyRepository implements IPharmacyRepository {
   Future<List<StockItemEntity>> searchMedicine(String query) async => [];
 
   @override
-  Stream<List<StockItemEntity>> watchPharmacyStock(String pharmacyId) =>
-      Stream.value([]);
+  Stream<List<StockItemEntity>> watchPharmacyStock(String pharmacyId) {
+    lastWatchedPharmacyId = pharmacyId;
+    return streamToReturn ?? Stream.value(stockToReturn);
+  }
 }
 
 void main() {
@@ -190,6 +195,20 @@ void main() {
 
         await useCase('stock-test-id');
         expect(fakeRepo.lastDeletedStockId, 'stock-test-id');
+      },
+    );
+
+    test(
+      'WatchPharmacyStockUseCase delegates stream subscription to repository',
+      () async {
+        final useCase = WatchPharmacyStockUseCase(fakeRepo);
+        fakeRepo.stockToReturn = [testStock];
+
+        final stream = useCase('pharm-test');
+        final emitted = await stream.first;
+
+        expect(fakeRepo.lastWatchedPharmacyId, 'pharm-test');
+        expect(emitted, [testStock]);
       },
     );
   });
