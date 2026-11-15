@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../domain/entities/pharmacy_entity.dart';
 import '../../../domain/repositories/pharmacy_repository.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../utils/auth_navigation.dart';
 
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final locale = context.read<SettingsCubit>().state.locale;
+    final isAuthenticated = context.watch<AuthBloc>().state is AuthAuthenticated;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,8 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () => AuthNavigation.toLogin(context),
-            icon: const Icon(Icons.logout),
-            tooltip: AppStrings.get('logout', locale),
+            icon: Icon(isAuthenticated ? Icons.logout : Icons.login),
+            tooltip: AppStrings.get(
+              isAuthenticated ? 'logout' : 'sign_in',
+              locale,
+            ),
           ),
         ],
       ),

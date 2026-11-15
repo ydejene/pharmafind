@@ -21,13 +21,13 @@ service cloud.firestore {
     }
 
     match /pharmacies/{pharmacyId} {
-      allow read: if signedIn();
+      allow read: if true;
       allow create: if isOwner(request.resource.data.ownerId) || isAdmin();
       allow update, delete: if isOwner(resource.data.ownerId) || isAdmin();
     }
 
     match /stock/{stockId} {
-      allow read: if signedIn();
+      allow read: if true;
       allow create: if signedIn()
         && (isAdmin()
           || get(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)).data.ownerId == request.auth.uid);

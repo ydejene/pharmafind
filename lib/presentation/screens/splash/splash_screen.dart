@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/auth_routes.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../widgets/pharmafind_logo.dart';
 
@@ -43,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       final settings = context.read<SettingsCubit>().state;
       if (settings.hasSeenOnboarding) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Navigator.of(context).pushReplacementNamed(AuthRoutes.home);
       } else {
         Navigator.of(context).pushReplacementNamed('/language');
       }
