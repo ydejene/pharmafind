@@ -394,6 +394,8 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                     _buildVerificationBadge(context, pharmacy, locale),
                     const SizedBox(height: 16),
                     _buildProfileCard(pharmacy, locale),
+                    const SizedBox(height: 16),
+                    _buildStockSummaryCard(context, pharmacyState, locale),
                     const SizedBox(height: 20),
                     Text(
                       AppStrings.get('quick_actions', locale),
@@ -405,6 +407,14 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    _ActionTile(
+                      icon: Icons.inventory_2_outlined,
+                      title: AppStrings.get('manage_stock', locale),
+                      subtitle: AppStrings.get('add_update_medicine', locale),
+                      onTap: () =>
+                          Navigator.of(context)
+                              .pushNamed(AuthRoutes.partnerStock),
+                    ),
                     _ActionTile(
                       icon: Icons.store_outlined,
                       title: AppStrings.get('pharmacy_profile', locale),
@@ -596,6 +606,171 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStockSummaryCard(
+    BuildContext context,
+    PharmacyState pharmacyState,
+    String locale,
+  ) {
+    final isLoading = pharmacyState.status == PharmacyStatus.loading;
+    final hasError = pharmacyState.status == PharmacyStatus.error;
+    final items = pharmacyState.stockItems;
+    final totalCount = items.length;
+    final inStockCount = items.where((i) => i.isInStock).length;
+    final lowOrOutCount = items
+        .where((i) => i.isLowStock || i.isOutOfStock)
+        .length;
+
+    final displayTotal = isLoading
+        ? '...'
+        : hasError
+        ? '-'
+        : totalCount.toString();
+    final displayInStock = isLoading
+        ? '...'
+        : hasError
+        ? '-'
+        : inStockCount.toString();
+    final displayLowOrOut = isLoading
+        ? '...'
+        : hasError
+        ? '-'
+        : lowOrOutCount.toString();
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 20,
+                    color: AppColors.primaryGreen,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppStrings.get('stock', locale),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                key: const Key('dashboard_manage_stock_link'),
+                onTap: () =>
+                    Navigator.of(context).pushNamed(AuthRoutes.partnerStock),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    AppStrings.get('manage_stock', locale),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryGreen,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Listed',
+                  value: displayTotal,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'In Stock',
+                  value: displayInStock,
+                  color: AppColors.successGreen,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Low / Out',
+                  value: displayLowOrOut,
+                  color: !isLoading && !hasError && lowOrOutCount > 0
+                      ? AppColors.warningYellow
+                      : AppColors.textLight,
+                ),
+              ),
+            ],
+          ),
+          if (hasError) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Unable to load inventory data',
+              style: TextStyle(fontSize: 11, color: AppColors.errorRed),
+            ),
+          ] else if (totalCount == 0 && !isLoading) ...[
+            const SizedBox(height: 8),
+            Text(
+              AppStrings.get('no_stock', locale),
+              style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile({
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: AppColors.cream,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textLight,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
