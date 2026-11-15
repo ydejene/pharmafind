@@ -6,6 +6,7 @@ import 'package:pharmafind/data/datasources/mock_pharmacy_datasource.dart';
 import 'package:pharmafind/data/models/pharmacy_model.dart';
 import 'package:pharmafind/data/models/user_model.dart';
 import 'package:pharmafind/data/repositories/pharmacy_repository_impl.dart';
+import 'package:pharmafind/domain/entities/stock_item_entity.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/add_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/create_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/delete_stock_item_usecase.dart';
@@ -348,6 +349,89 @@ void main() {
           find.textContaining('people searched for a medicine'),
           findsNothing,
         );
+      },
+    );
+
+    testWidgets(
+      'displays inventory summary with real data and navigates to stock screen',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: true);
+        final cubit = _buildTestCubit(mockDataSource);
+        await cubit.loadPharmacy('owner-1');
+
+        bool navigatedToStock = false;
+
+        await pumpDashboardScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'owner-1'),
+          routes: {
+            '/partner-stock': (_) {
+              navigatedToStock = true;
+              return const Scaffold(body: Text('Stock Screen Target'));
+            },
+          },
+        );
+
+        // Verify inventory summary card
+        expect(find.text('Listed'), findsOneWidget);
+        expect(find.text('In Stock'), findsOneWidget);
+        expect(find.text('Low / Out'), findsOneWidget);
+
+        // Tap manage stock action tile
+        final manageStockTile = find.widgetWithText(
+          InkWell,
+          _en('manage_stock'),
+        );
+        expect(manageStockTile, findsWidgets);
+
+        await tester.tap(manageStockTile.first);
+        await tester.pumpAndSettle();
+
+        expect(navigatedToStock, isTrue);
+        expect(find.text('Stock Screen Target'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'inventory metrics update when stock items are added or mutated',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: true);
+        final cubit = _buildTestCubit(mockDataSource);
+        await cubit.loadPharmacy('owner-1');
+
+        await pumpDashboardScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'owner-1'),
+        );
+
+        // Initially 2 items in stock for owner-1
+        expect(find.text('2'), findsWidgets);
+
+        // Add an out-of-stock medicine through cubit
+        final currentPharmacy = cubit.state.pharmacy!;
+        final newItem = StockItemEntity(
+          id: 'new-stock-item',
+          pharmacyId: currentPharmacy.id,
+          pharmacyName: currentPharmacy.name,
+          pharmacyArea: currentPharmacy.area,
+          pharmacyPhone: currentPharmacy.phone,
+          pharmacyHours: currentPharmacy.hours,
+          pharmacyLat: currentPharmacy.latitude,
+          pharmacyLng: currentPharmacy.longitude,
+          medicineName: 'Azithromycin 250mg',
+          status: 'out_of_stock',
+          quantity: 0,
+          price: 12000,
+          updatedAt: DateTime.now(),
+        );
+        await cubit.addStockItem(newItem);
+        await tester.pumpAndSettle();
+
+        // Listed count should now be 3, Low/Out count should now be 1
+        expect(find.text('3'), findsOneWidget); // Total listed
+        expect(find.text('1'), findsOneWidget); // Low / Out
       },
     );
   });
