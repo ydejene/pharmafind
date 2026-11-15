@@ -25,7 +25,7 @@ Future<void> pumpRejectedScreen(
   PharmacyCubit? pharmacyCubit,
   Map<String, WidgetBuilder> routes = const {},
 }) async {
-  tester.view.physicalSize = const Size(800, 1000);
+  tester.view.physicalSize = const Size(800, 1200);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
@@ -39,8 +39,10 @@ Future<void> pumpRejectedScreen(
       child: MaterialApp(
         home: const PartnerRejectedScreen(),
         routes: {
-          '/partner-license': (_) => const Scaffold(key: Key('license')),
-          '/home': (_) => const Scaffold(key: Key('home')),
+          '/partner-profile': (_) =>
+              const Scaffold(key: Key('partner_profile_screen')),
+          '/partner-dashboard': (_) =>
+              const Scaffold(key: Key('partner_dashboard_screen')),
           ...routes,
         },
       ),
@@ -51,22 +53,29 @@ Future<void> pumpRejectedScreen(
 
 void main() {
   group('PartnerRejectedScreen', () {
-    testWidgets('renders action needed, rejected message, and notice', (
-      tester,
-    ) async {
-      await pumpRejectedScreen(tester);
+    testWidgets(
+      'renders action needed, rejection checklist, and honest notice',
+      (tester) async {
+        await pumpRejectedScreen(tester);
 
-      expect(find.text(_en('action_needed')), findsOneWidget);
-      expect(find.text(_en('rejected_title')), findsOneWidget);
-      expect(find.text(_en('rejected_desc')), findsOneWidget);
-      expect(find.text(_en('resubmit')), findsOneWidget);
-      expect(find.text(_en('back_home')), findsOneWidget);
+        expect(find.text(_en('action_needed')), findsOneWidget);
+        expect(find.text(_en('rejected_title')), findsOneWidget);
+        expect(find.text(_en('rejected_desc')), findsOneWidget);
+        expect(find.text(_en('what_to_check')), findsOneWidget);
+        expect(find.text(_en('readable')), findsOneWidget);
+        expect(find.text(_en('not_expired')), findsOneWidget);
+        expect(find.text(_en('full_visible')), findsOneWidget);
+        expect(find.text(_en('edit_pharmacy_info')), findsOneWidget);
+        expect(find.text(_en('pharmacy_dashboard')), findsOneWidget);
 
-      expect(
-        find.textContaining('This screen renders when an admin rejects'),
-        findsOneWidget,
-      );
-    });
+        expect(
+          find.textContaining(
+            'Automated document resubmission is currently unavailable',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets(
       'displays persisted pharmacy name when a rejected record exists',
@@ -106,31 +115,29 @@ void main() {
         await pumpRejectedScreen(tester, pharmacyCubit: cubit);
 
         expect(find.text('City Central Pharmacy'), findsOneWidget);
-        expect(
-          find.textContaining('This screen renders when an admin rejects'),
-          findsNothing,
-        );
       },
     );
 
-    testWidgets('resubmit button navigates to /partner-license', (
+    testWidgets('edit pharmacy info button navigates to /partner-profile', (
       tester,
     ) async {
       await pumpRejectedScreen(tester);
 
-      await tester.tap(find.text(_en('resubmit')));
+      await tester.tap(find.text(_en('edit_pharmacy_info')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('license')), findsOneWidget);
+      expect(find.byKey(const Key('partner_profile_screen')), findsOneWidget);
     });
 
-    testWidgets('back to home navigates to /home', (tester) async {
+    testWidgets('dashboard button navigates to /partner-dashboard', (
+      tester,
+    ) async {
       await pumpRejectedScreen(tester);
 
-      await tester.tap(find.text(_en('back_home')));
+      await tester.tap(find.text(_en('pharmacy_dashboard')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('home')), findsOneWidget);
+      expect(find.byKey(const Key('partner_dashboard_screen')), findsOneWidget);
     });
   });
 }
