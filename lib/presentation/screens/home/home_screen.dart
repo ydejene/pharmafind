@@ -56,6 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text(AppStrings.get('app_name', locale)),
         actions: [
           IconButton(
+            onPressed: () => Navigator.of(context).pushNamed('/profile'),
+            icon: const Icon(Icons.person_outline),
+            tooltip: AppStrings.get('profile', locale),
+          ),
+          IconButton(
             onPressed: () => AuthNavigation.toLogin(context),
             icon: Icon(isAuthenticated ? Icons.logout : Icons.login),
             tooltip: AppStrings.get(
@@ -110,6 +115,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Text(AppStrings.get('find_stock', locale)),
                 const SizedBox(height: 24),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).pushNamed('/profile'),
+                      icon: const Icon(Icons.person_outline),
+                      label: Text(AppStrings.get('profile', locale)),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).pushNamed('/partner-signup'),
+                      icon: const Icon(Icons.storefront_outlined),
+                      label: Text(AppStrings.get('register_pharmacy', locale)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
@@ -136,6 +157,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       leading: const Icon(Icons.local_pharmacy_outlined),
                       title: Text(pharmacy.name),
                       subtitle: Text('${pharmacy.area} · ${pharmacy.hours}'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => showDialog<void>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(pharmacy.name),
+                          content: Text(
+                            '${pharmacy.area}\n${pharmacy.hours}\n${pharmacy.phone}',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(AppStrings.get('ok', locale)),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),

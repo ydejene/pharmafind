@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/home/home_results_screen.dart';
+import 'presentation/screens/home/availability_alert_screen.dart';
 import 'presentation/screens/onboarding/onboarding.dart';
 import 'presentation/screens/partner/partner_dashboard_screen.dart';
 import 'presentation/screens/partner/partner_license_screen.dart';
@@ -20,6 +21,7 @@ import 'presentation/screens/profile/profile_screen.dart';
 import 'presentation/screens/pharmacy/directions_screen.dart';
 import 'presentation/screens/pharmacy/pharmacy_detail_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
+import 'presentation/screens/settings/settings_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
   const PharmaFindApp({super.key});
@@ -48,6 +50,10 @@ class PharmaFindApp extends StatelessWidget {
                 '/search-results' => const SearchResultsScreen(),
                 '/pharmacy-detail' => const PharmacyDetailScreen(),
                 '/directions' => const DirectionsScreen(),
+                '/notify' => AvailabilityAlertScreen(
+                  query: routeSettings.arguments as String?,
+                ),
+                '/settings' => const SettingsScreen(),
                 AuthRoutes.profile => const ProfileScreen(),
                 '/edit-profile' => const EditProfileScreen(),
                 AuthRoutes.partnerSignup => const PartnerSignupScreen(),
