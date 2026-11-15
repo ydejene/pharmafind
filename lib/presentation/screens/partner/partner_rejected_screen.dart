@@ -3,16 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/auth_routes.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-/// Shown when admin has rejected the partner's submitted documents.
+/// Shown when admin has rejected the partner's submitted pharmacy documents.
 ///
-/// **Persistence & Domain Integration:**
-/// The `'rejected'` status originates from [PharmacyEntity.status] via [PharmacyCubit].
-/// - If a persisted pharmacy record exists for this partner, its name is displayed.
-/// - If no record exists, a preview notice is shown.
-/// - "Resubmit documents" navigates back to [PartnerLicenseScreen].
+/// **Domain & Action Accuracy:**
+/// - Surfaced when `PharmacyEntity.status == 'rejected'` via [PharmacyCubit].
+/// - Displays the persistent pharmacy name when available.
+/// - Accurately provides an action to review and update pharmacy profile details
+///   ([AuthRoutes.partnerProfile]) rather than falsely implying automated document
+///   re-upload or instant status reset.
 class PartnerRejectedScreen extends StatelessWidget {
   const PartnerRejectedScreen({super.key});
 
@@ -81,62 +83,99 @@ class PartnerRejectedScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textMedium,
+                  height: 1.35,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              if (!hasPersistedRecord)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.warningYellow.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.warningYellow.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: AppColors.warningYellow,
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Notice: This screen renders when an admin rejects pharmacy documents. Re-application requires profile submission.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textMedium,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ],
+              // Checklist of what to check
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.borderLight.withValues(alpha: 0.7),
                   ),
                 ),
-              const SizedBox(height: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.get('what_to_check', locale),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildCheckItem(AppStrings.get('readable', locale)),
+                    const SizedBox(height: 6),
+                    _buildCheckItem(AppStrings.get('not_expired', locale)),
+                    const SizedBox(height: 6),
+                    _buildCheckItem(AppStrings.get('full_visible', locale)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Honest notice about document re-evaluation limitations
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.warningYellow.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.warningYellow.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 20,
+                      color: AppColors.warningYellow,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Document re-evaluation: Automated document resubmission is currently unavailable. Please verify and update your pharmacy details or contact support for manual review.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMedium,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+              // Accurate primary action: Update pharmacy details
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed('/partner-license');
+                    Navigator.of(context).pushNamed(AuthRoutes.partnerProfile);
                   },
-                  child: Text(AppStrings.get('resubmit', locale)),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(AppStrings.get('edit_pharmacy_info', locale)),
                 ),
               ),
               const SizedBox(height: 12),
+              // Secondary action: Return to dashboard or home
               TextButton(
                 onPressed: () {
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/home', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    AuthRoutes.partnerDashboard,
+                    (route) => false,
+                  );
                 },
                 child: Text(
-                  AppStrings.get('back_home', locale),
+                  AppStrings.get('pharmacy_dashboard', locale),
                   style: const TextStyle(color: AppColors.primaryGreen),
                 ),
               ),
@@ -145,6 +184,25 @@ class PartnerRejectedScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCheckItem(String text) {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle_outline,
+          size: 16,
+          color: AppColors.primaryGreen,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+          ),
+        ),
+      ],
     );
   }
 }
