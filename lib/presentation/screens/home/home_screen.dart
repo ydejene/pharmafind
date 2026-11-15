@@ -7,6 +7,7 @@ import '../../../domain/repositories/pharmacy_repository.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../bloc/search/search_cubit.dart';
 import '../../utils/auth_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<PharmacyEntity>> _pharmacies;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -29,6 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _pharmacies = context.read<IPharmacyRepository>().getApprovedPharmacies();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _search() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    await context.read<SearchCubit>().searchMedicine(query);
+    if (mounted) Navigator.of(context).pushNamed('/search-results');
   }
 
   @override
@@ -94,6 +109,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(AppStrings.get('find_stock', locale)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _searchController,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _search(),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.get('search_medicine', locale),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      onPressed: _search,
+                      icon: const Icon(Icons.arrow_forward),
+                      tooltip: AppStrings.get('search_medicine', locale),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Text(
                   AppStrings.get('nearby_pharmacies', locale),

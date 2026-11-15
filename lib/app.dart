@@ -6,6 +6,7 @@ import 'core/constants/auth_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/home/home_results_screen.dart';
 import 'presentation/screens/onboarding/onboarding.dart';
 import 'presentation/screens/partner/partner_dashboard_screen.dart';
 import 'presentation/screens/partner/partner_license_screen.dart';
@@ -16,6 +17,8 @@ import 'presentation/screens/partner/partner_signup_screen.dart';
 import 'presentation/screens/partner/partner_stock_screen.dart';
 import 'presentation/screens/profile/edit_profile_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
+import 'presentation/screens/pharmacy/directions_screen.dart';
+import 'presentation/screens/pharmacy/pharmacy_detail_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
@@ -42,6 +45,9 @@ class PharmaFindApp extends StatelessWidget {
                 AuthRoutes.register => const RegisterScreen(),
                 AuthRoutes.forgotPassword => const ForgotPasswordScreen(),
                 AuthRoutes.home => const HomeScreen(),
+                '/search-results' => const SearchResultsScreen(),
+                '/pharmacy-detail' => const PharmacyDetailScreen(),
+                '/directions' => const DirectionsScreen(),
                 AuthRoutes.profile => const ProfileScreen(),
                 '/edit-profile' => const EditProfileScreen(),
                 AuthRoutes.partnerSignup => const PartnerSignupScreen(),

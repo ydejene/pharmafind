@@ -26,6 +26,7 @@ import 'domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
 import 'domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import 'domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
+import 'domain/usecases/pharmacy/search_medicine_usecase.dart';
 import 'domain/usecases/settings/get_settings_usecase.dart';
 import 'domain/usecases/settings/mark_onboarding_seen_usecase.dart';
 import 'domain/usecases/settings/set_app_updates_usecase.dart';
@@ -35,6 +36,7 @@ import 'domain/usecases/settings/set_stock_alerts_usecase.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/auth/auth_event.dart';
 import 'presentation/bloc/pharmacy/pharmacy_cubit.dart';
+import 'presentation/bloc/search/search_cubit.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'firebase_options.dart';
 
@@ -85,6 +87,9 @@ void main() async {
     deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
     watchPharmacyStockUseCase: WatchPharmacyStockUseCase(pharmacyRepository),
   );
+  final searchCubit = SearchCubit(
+    searchMedicineUseCase: SearchMedicineUseCase(pharmacyRepository),
+  );
   final authBloc = AuthBloc(
     getCurrentUser: GetCurrentUserUseCase(authRepository),
     signInWithEmail: SignInWithEmailUseCase(authRepository),
@@ -101,6 +106,7 @@ void main() async {
         BlocProvider<SettingsCubit>.value(value: settingsCubit),
         BlocProvider<AuthBloc>.value(value: authBloc),
         BlocProvider<PharmacyCubit>.value(value: pharmacyCubit),
+        BlocProvider<SearchCubit>.value(value: searchCubit),
         RepositoryProvider<IPharmacyRepository>.value(
           value: pharmacyRepository,
         ),
