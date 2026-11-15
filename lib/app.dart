@@ -13,6 +13,7 @@ import 'presentation/screens/partner/partner_pending_screen.dart';
 import 'presentation/screens/partner/partner_profile_screen.dart';
 import 'presentation/screens/partner/partner_rejected_screen.dart';
 import 'presentation/screens/partner/partner_signup_screen.dart';
+import 'presentation/screens/partner/partner_stock_screen.dart';
 import 'presentation/screens/profile/edit_profile_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
@@ -49,6 +50,7 @@ class PharmaFindApp extends StatelessWidget {
                 AuthRoutes.partnerRejected => const PartnerRejectedScreen(),
                 AuthRoutes.partnerProfile => const PartnerProfileScreen(),
                 AuthRoutes.partnerDashboard => const PartnerDashboardScreen(),
+                AuthRoutes.partnerStock => const PartnerStockScreen(),
                 _ => Scaffold(
                   body: Center(
                     child: Text(AppStrings.get('error', settings.locale)),
