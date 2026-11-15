@@ -13,5 +13,6 @@ class AuthRoutes {
   static const String partnerRejected = '/partner-rejected';
   static const String partnerProfile = '/partner-profile';
   static const String partnerDashboard = '/partner-dashboard';
+  static const String partnerStock = '/partner-stock';
   static const String profile = '/profile';
 }
