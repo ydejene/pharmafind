@@ -84,31 +84,61 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.shield_outlined,
                   title: AppStrings.get('insurance_info', locale),
                   subtitle: user.insuranceProvider ?? AppStrings.get('not_set', locale),
-                  onTap: () {},
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(AppStrings.get('insurance_info', locale)),
+                      content: Text(
+                        '${user.insuranceProvider ?? AppStrings.get('not_set', locale)}\n${user.insuranceId ?? ''}',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(AppStrings.get('ok', locale)),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _SectionHeader(AppStrings.get('preferences', locale)),
                 _MenuTile(
                   icon: Icons.language,
                   title: AppStrings.get('language', locale),
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).pushNamed('/language'),
                 ),
                 _MenuTile(
                   icon: Icons.notifications_outlined,
                   title: AppStrings.get('notifications', locale),
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).pushNamed('/settings'),
                 ),
                 const SizedBox(height: 24),
                 _SectionHeader(AppStrings.get('app', locale)),
                 _MenuTile(
                   icon: Icons.help_outline,
                   title: AppStrings.get('help', locale),
-                  onTap: () {},
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(AppStrings.get('help', locale)),
+                      content: Text(AppStrings.get('details_help', locale)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(AppStrings.get('ok', locale)),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 _MenuTile(
                   icon: Icons.info_outline,
                   title: AppStrings.get('about', locale),
-                  onTap: () {},
+                  onTap: () => showAboutDialog(
+                    context: context,
+                    applicationName: AppStrings.get('app_name', locale),
+                    applicationLegalese: AppStrings.get('tagline', locale),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
