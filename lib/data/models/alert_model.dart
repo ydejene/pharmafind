@@ -41,18 +41,28 @@ class AlertModel extends Equatable {
     );
   }
 
-  factory AlertModel.fromMap(Map<String, dynamic> data, String id) {
+  factory AlertModel.fromMap(
+      Map<String, dynamic> data,
+      String id,
+      ) {
+    final createdAtValue = data['createdAt'];
+
+    // converting the Firestore timestamp into a DateTime
+    final createdAt = createdAtValue is DateTime
+        ? createdAtValue
+        : createdAtValue is String
+        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
+        : createdAtValue != null
+        ? (createdAtValue as dynamic).toDate() as DateTime
+        : DateTime.now();
+
     return AlertModel(
       id: id,
       userId: data['userId'] ?? '',
       medicineName: data['medicineName'] ?? '',
       searchArea: data['searchArea'] ?? 'Kigali, Rwanda',
       isActive: data['isActive'] ?? true,
-      createdAt: data['createdAt'] is DateTime
-          ? data['createdAt']
-          : (data['createdAt'] is String
-                ? DateTime.tryParse(data['createdAt']) ?? DateTime.now()
-                : DateTime.now()),
+      createdAt: createdAt,
     );
   }
 
