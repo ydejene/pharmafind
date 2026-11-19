@@ -8,6 +8,23 @@ class AppStrings {
   };
 
   static const Map<String, String> _en = {
+    // profile screen
+    'default_user': 'PharmaFind user',
+    'update_personal_info': 'Update your personal information',
+    'medical_insurance': 'Medical insurance',
+    'provider': 'Provider',
+    'member_policy_number': 'Member or policy number',
+    'not_provided': 'Not provided',
+    'edit_details': 'Edit details',
+    'choose_language_preference': 'Choose your preferred language',
+    'manage_alerts': 'Manage alerts and reminders',
+    'help_desc': 'Get help using PharmaFind',
+    'about_desc': 'Learn more about PharmaFind',
+    'logout_title': 'Log out?',
+    'logout_message':
+    'You will need to sign in again to access your account.',
+    'cancel': 'Cancel',
+
     'app_name': 'PharmaFind',
     'tagline': 'Medicine nearby. Peace of mind.',
     'built_for': 'Built for healthier communities',
@@ -268,6 +285,23 @@ class AppStrings {
   };
 
   static const Map<String, String> _rw = {
+    //profile screen
+    'default_user': 'Ukoresha PharmaFind',
+    'update_personal_info': 'Hindura amakuru yawe bwite',
+    'medical_insurance': 'Ubwishingizi bwo kwivuza',
+    'provider': 'Ikigo cy’ubwishingizi',
+    'member_policy_number': 'Nomero y’umunyamuryango',
+    'not_provided': 'Ntabwo yatanzwe',
+    'edit_details': 'Hindura amakuru',
+    'choose_language_preference': 'Hitamo ururimi ushaka',
+    'manage_alerts': 'Genzura amatangazo n’ibutsa',
+    'help_desc': 'Shaka ubufasha bwo gukoresha PharmaFind',
+    'about_desc': 'Menya byinshi kuri PharmaFind',
+    'logout_title': 'Gusohoka?',
+    'logout_message':
+    'Bizagusaba kongera kwinjira kugira ngo ukoreshe konti yawe.',
+    'cancel': 'Hagarika',
+
     'app_name': 'PharmaFind',
     'tagline': 'Imiti hafi. Amahoro mu mutwe.',
     'built_for': 'Byubatsiwe ku bw\'umuryango mwiza',
@@ -525,6 +559,23 @@ class AppStrings {
   };
 
   static const Map<String, String> _fr = {
+
+    // profile screen
+    'default_user': 'Utilisateur PharmaFind',
+    'update_personal_info': 'Mettez à jour vos informations personnelles',
+    'medical_insurance': 'Assurance médicale',
+    'provider': 'Prestataire',
+    'member_policy_number': 'Numéro de membre ou de police',
+    'not_provided': 'Non renseigné',
+    'edit_details': 'Modifier les détails',
+    'choose_language_preference': 'Choisissez votre langue préférée',
+    'manage_alerts': 'Gérez les alertes et les rappels',
+    'help_desc': 'Obtenez de l’aide pour utiliser PharmaFind',
+    'about_desc': 'En savoir plus sur PharmaFind',
+    'logout_title': 'Se déconnecter ?',
+    'logout_message':
+    'Vous devrez vous reconnecter pour accéder à votre compte.',
+    'cancel': 'Annuler',
     'app_name': 'PharmaFind',
     'tagline': 'Vos médicaments à proximité. L\'esprit tranquille.',
     'built_for': 'Conçu pour des communautés en meilleure santé',
