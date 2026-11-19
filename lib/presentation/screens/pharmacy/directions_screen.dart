@@ -367,21 +367,40 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
                     height: 52,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        final origin = userLatLng == null
-                            ? ''
-                            : '&origin=${userLatLng.latitude},'
-                                  '${userLatLng.longitude}';
+                        final messenger = ScaffoldMessenger.of(context);
 
-                        final url =
-                            'https://www.google.com/maps/dir/?api=1'
-                            '$origin'
-                            '&destination=${item.pharmacyLat},'
-                            '${item.pharmacyLng}';
+                        final queryParameters = <String, String>{
+                          'api': '1',
+                          'destination':
+                              '${item.pharmacyLat},${item.pharmacyLng}',
+                        };
 
-                        await launchUrl(
-                          Uri.parse(url),
+                        if (userLatLng != null) {
+                          queryParameters['origin'] =
+                              '${userLatLng.latitude},'
+                              '${userLatLng.longitude}';
+                        }
+
+                        final uri = Uri.https(
+                          'www.google.com',
+                          '/maps/dir/',
+                          queryParameters,
+                        );
+
+                        debugPrint('Google Maps URL: $uri');
+
+                        final launched = await launchUrl(
+                          uri,
                           mode: LaunchMode.externalApplication,
                         );
+
+                        if (!launched && mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not open Google Maps.'),
+                            ),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.navigation),
                       label: Text(AppStrings.get('start_directions', locale)),
