@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,8 +10,113 @@ import '../../../core/constants/app_strings.dart';
 import '../../bloc/search/search_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-class DirectionsScreen extends StatelessWidget {
+class DirectionsScreen extends StatefulWidget {
   const DirectionsScreen({super.key});
+
+  @override
+  State<DirectionsScreen> createState() => _DirectionsScreenState();
+}
+
+class _DirectionsScreenState extends State<DirectionsScreen> {
+  Position? _currentPosition;
+  bool _isLoadingLocation = true;
+  String? _locationError;
+  final MapController _mapController = MapController();
+  bool _mapReady = false;
+  bool _hasFittedMarkers = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  void _fitMapToMarkers(LatLng pharmacy, LatLng user) {
+    if (!_mapReady || _hasFittedMarkers) return;
+
+    _hasFittedMarkers = true;
+
+    if (pharmacy.latitude == user.latitude &&
+        pharmacy.longitude == user.longitude) {
+      _mapController.move(pharmacy, 14);
+      return;
+    }
+
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds(pharmacy, user),
+        padding: const EdgeInsets.fromLTRB(40, 100, 40, 240),
+        maxZoom: 15,
+      ),
+    );
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      var permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permission was denied.');
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Location permission is permanently denied. '
+          'Enable it in your device settings.',
+        );
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+        _locationError = null;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_mapReady) return;
+
+        final item = context.read<SearchCubit>().state.selectedItem;
+        if (item == null) return;
+
+        _fitMapToMarkers(
+          LatLng(item.pharmacyLat, item.pharmacyLng),
+          LatLng(position.latitude, position.longitude),
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingLocation = false;
+        _locationError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +130,27 @@ class DirectionsScreen extends StatelessWidget {
     }
 
     final pharmacyLatLng = LatLng(item.pharmacyLat, item.pharmacyLng);
-    final userLatLng = LatLng(-1.9441, 29.8739);
+
+    final userLatLng = _currentPosition == null
+        ? null
+        : LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
 
     return Scaffold(
       body: Stack(
         children: [
           FlutterMap(
-            options: MapOptions(initialCenter: pharmacyLatLng, initialZoom: 14),
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: pharmacyLatLng,
+              initialZoom: 14,
+              onMapReady: () {
+                _mapReady = true;
+
+                if (userLatLng != null) {
+                  _fitMapToMarkers(pharmacyLatLng, userLatLng);
+                }
+              },
+            ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -48,23 +168,24 @@ class DirectionsScreen extends StatelessWidget {
                       size: 40,
                     ),
                   ),
-                  Marker(
-                    point: userLatLng,
-                    width: 36,
-                    height: 36,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryGreen,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.navigation,
-                        color: Colors.white,
-                        size: 18,
+                  if (userLatLng != null)
+                    Marker(
+                      point: userLatLng,
+                      width: 36,
+                      height: 36,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGreen,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.navigation,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -171,34 +292,37 @@ class DirectionsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Text(
-                        '6',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryGreen,
+                      Icon(
+                        _isLoadingLocation
+                            ? Icons.location_searching
+                            : userLatLng != null
+                            ? Icons.my_location
+                            : Icons.location_off,
+                        color: AppColors.primaryGreen,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _isLoadingLocation
+                              ? 'Getting your location...'
+                              : _locationError != null
+                              ? _locationError!
+                              : 'Your current location is displayed on the map.',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textLight,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppStrings.get('min', locale),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryGreen,
+                      if (_locationError != null)
+                        IconButton(
+                          onPressed: _getCurrentLocation,
+                          icon: const Icon(Icons.refresh),
+                          tooltip: 'Try again',
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '2.1 ${AppStrings.get('km', locale)} · ${AppStrings.get('fastest_route', locale)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textLight,
-                        ),
-                      ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Container(
@@ -242,14 +366,41 @@ class DirectionsScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        final url =
-                            'https://www.google.com/maps/dir/?api=1'
-                            '&destination=${item.pharmacyLat},${item.pharmacyLng}';
-                        launchUrl(
-                          Uri.parse(url),
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+
+                        final queryParameters = <String, String>{
+                          'api': '1',
+                          'destination':
+                              '${item.pharmacyLat},${item.pharmacyLng}',
+                        };
+
+                        if (userLatLng != null) {
+                          queryParameters['origin'] =
+                              '${userLatLng.latitude},'
+                              '${userLatLng.longitude}';
+                        }
+
+                        final uri = Uri.https(
+                          'www.google.com',
+                          '/maps/dir/',
+                          queryParameters,
+                        );
+
+                        debugPrint('Google Maps URL: $uri');
+
+                        final launched = await launchUrl(
+                          uri,
                           mode: LaunchMode.externalApplication,
                         );
+
+                        if (!launched && mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not open Google Maps.'),
+                            ),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.navigation),
                       label: Text(AppStrings.get('start_directions', locale)),

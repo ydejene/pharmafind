@@ -219,35 +219,36 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.successGreen,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${item.quantity} ${AppStrings.get('packs', locale)} ${AppStrings.get('currently_in_stock', locale)}',
-                                    style: TextStyle(
-                                      color: AppColors.successGreen,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.successGreen,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                              Text(
-                                '${AppStrings.get('updated', locale)} ${item.timeAgo}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.successGreen.withValues(
-                                    alpha: 0.7,
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${item.quantity} ${AppStrings.get('packs', locale)} ${AppStrings.get('currently_in_stock', locale)}',
+                                  style: TextStyle(
+                                    color: AppColors.successGreen,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  '${AppStrings.get('updated', locale)} ${item.timeAgo}',
+                                  textAlign: TextAlign.end,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.successGreen.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ),
