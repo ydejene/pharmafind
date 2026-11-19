@@ -40,6 +40,10 @@ import 'presentation/bloc/search/search_cubit.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'firebase_options.dart';
 
+import 'data/datasources/firestore_alert_datasource.dart';
+import 'data/repositories/alert_repository_impl.dart';
+import 'presentation/bloc/alert/alert_cubit.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -77,6 +81,15 @@ void main() async {
   final pharmacyRepository = PharmacyRepositoryImpl(
     datasource: FirestorePharmacyDataSource(),
   );
+
+  final alertRepository = AlertRepositoryImpl(
+    datasource: FirestoreAlertDataSource(),
+  );
+
+  final alertCubit = AlertCubit(
+    alertRepository: alertRepository,
+  );
+
   final pharmacyCubit = PharmacyCubit(
     getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(pharmacyRepository),
     getPharmacyStockUseCase: GetPharmacyStockUseCase(pharmacyRepository),
@@ -103,6 +116,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider<AlertCubit>.value(value: alertCubit),
         BlocProvider<SettingsCubit>.value(value: settingsCubit),
         BlocProvider<AuthBloc>.value(value: authBloc),
         BlocProvider<PharmacyCubit>.value(value: pharmacyCubit),
