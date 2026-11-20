@@ -20,7 +20,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: PasswordStrengthIndicator(password: 'abc123'),
+            body: PasswordStrengthIndicator(password: 'abcdef'),
           ),
         ),
       );

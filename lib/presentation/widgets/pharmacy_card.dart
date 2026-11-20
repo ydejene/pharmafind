@@ -167,11 +167,14 @@ class PharmacyCard extends StatelessWidget {
                 children: [
                   Icon(Icons.access_time, size: 13, color: AppColors.textLight),
                   const SizedBox(width: 4),
-                  Text(
-                    'Last updated ${stockItem.timeAgo}',
-                    style: TextStyle(fontSize: 11, color: AppColors.textLight),
+                  Expanded(
+                    child: Text(
+                      'Last updated ${stockItem.timeAgo}',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,

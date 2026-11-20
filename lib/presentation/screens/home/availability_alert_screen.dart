@@ -153,7 +153,7 @@ class _AvailabilityAlertScreenState
                             width: 68,
                             height: 68,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.14),
+                              color: Colors.white.withValues(alpha: 0.14),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(

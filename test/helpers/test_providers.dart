@@ -9,7 +9,7 @@ import 'package:pharmafind/data/repositories/alert_repository_impl.dart';
 import 'package:pharmafind/data/repositories/auth_repository_impl.dart';
 import 'package:pharmafind/data/repositories/pharmacy_repository_impl.dart';
 import 'package:pharmafind/data/repositories/settings_repository_impl.dart';
-import 'package:pharmafind/domain/usecases/alert/create_alert_usecase.dart';
+import 'package:pharmafind/domain/repositories/pharmacy_repository.dart';
 import 'package:pharmafind/domain/usecases/auth/get_current_user_usecase.dart';
 import 'package:pharmafind/domain/usecases/auth/register_with_email_usecase.dart';
 import 'package:pharmafind/domain/usecases/auth/send_password_reset_usecase.dart';
@@ -71,46 +71,54 @@ Widget withTestProviders({
     datasource: MockAlertDataSource(),
   );
 
-  return MultiBlocProvider(
+  return MultiRepositoryProvider(
     providers: [
-      BlocProvider<SettingsCubit>.value(value: settingsCubit),
-      BlocProvider<AuthBloc>(
-        create: (_) => AuthBloc(
-          getCurrentUser: GetCurrentUserUseCase(authRepository),
-          signInWithEmail: SignInWithEmailUseCase(authRepository),
-          registerWithEmail: RegisterWithEmailUseCase(authRepository),
-          signInWithGoogle: SignInWithGoogleUseCase(authRepository),
-          sendPasswordReset: SendPasswordResetUseCase(authRepository),
-          signOut: SignOutUseCase(authRepository),
-          updateUserProfile: UpdateUserProfileUseCase(authRepository),
-        )..add(AuthCheckRequested()),
-      ),
-      BlocProvider<SearchCubit>(
-        create: (_) => SearchCubit(
-          searchMedicineUseCase: SearchMedicineUseCase(pharmacyRepository),
-        ),
-      ),
-      BlocProvider<PharmacyCubit>(
-        create: (_) => PharmacyCubit(
-          getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(
-            pharmacyRepository,
-          ),
-          getPharmacyStockUseCase: GetPharmacyStockUseCase(pharmacyRepository),
-          createPharmacyUseCase: CreatePharmacyUseCase(pharmacyRepository),
-          updatePharmacyUseCase: UpdatePharmacyUseCase(pharmacyRepository),
-          addStockItemUseCase: AddStockItemUseCase(pharmacyRepository),
-          updateStockItemUseCase: UpdateStockItemUseCase(pharmacyRepository),
-          deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
-          watchPharmacyStockUseCase: WatchPharmacyStockUseCase(
-            pharmacyRepository,
-          ),
-        ),
-      ),
-      BlocProvider<AlertCubit>(
-        create: (_) =>
-            AlertCubit(createAlertUseCase: CreateAlertUseCase(alertRepository)),
+      RepositoryProvider<IPharmacyRepository>.value(
+        value: pharmacyRepository,
       ),
     ],
-    child: child,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<SettingsCubit>.value(value: settingsCubit),
+        BlocProvider<AuthBloc>(
+          create: (_) => AuthBloc(
+            getCurrentUser: GetCurrentUserUseCase(authRepository),
+            signInWithEmail: SignInWithEmailUseCase(authRepository),
+            registerWithEmail: RegisterWithEmailUseCase(authRepository),
+            signInWithGoogle: SignInWithGoogleUseCase(authRepository),
+            sendPasswordReset: SendPasswordResetUseCase(authRepository),
+            signOut: SignOutUseCase(authRepository),
+            updateUserProfile: UpdateUserProfileUseCase(authRepository),
+          )..add(AuthCheckRequested()),
+        ),
+        BlocProvider<SearchCubit>(
+          create: (_) => SearchCubit(
+            searchMedicineUseCase: SearchMedicineUseCase(pharmacyRepository),
+          ),
+        ),
+        BlocProvider<PharmacyCubit>(
+          create: (_) => PharmacyCubit(
+            getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(
+              pharmacyRepository,
+            ),
+            getPharmacyStockUseCase: GetPharmacyStockUseCase(pharmacyRepository),
+            createPharmacyUseCase: CreatePharmacyUseCase(pharmacyRepository),
+            updatePharmacyUseCase: UpdatePharmacyUseCase(pharmacyRepository),
+            addStockItemUseCase: AddStockItemUseCase(pharmacyRepository),
+            updateStockItemUseCase: UpdateStockItemUseCase(pharmacyRepository),
+            deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
+            watchPharmacyStockUseCase: WatchPharmacyStockUseCase(
+              pharmacyRepository,
+            ),
+          ),
+        ),
+        BlocProvider<AlertCubit>(
+          create: (_) => AlertCubit(
+            alertRepository: alertRepository,
+          ),
+        ),
+      ],
+      child: child,
+    ),
   );
 }

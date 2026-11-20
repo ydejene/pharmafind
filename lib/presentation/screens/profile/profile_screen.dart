@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/auth_routes.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -122,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: colorScheme.onSurface.withOpacity(0.16),
+                      color: colorScheme.onSurface.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -134,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.10),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -395,6 +396,35 @@ class _ProfileScreenState extends State<ProfileScreen>
                             );
                           },
                         ),
+                        if (user.isPartner)
+                          _MenuTile(
+                            icon: Icons.dashboard_outlined,
+                            title: AppStrings.get(
+                              'partner_dashboard',
+                              locale,
+                            ),
+                            subtitle: AppStrings.get(
+                              'partner_portal',
+                              locale,
+                            ),
+                            onTap: () {
+                              Navigator.of(context)
+                                  .pushNamed(AuthRoutes.partnerDashboard);
+                            },
+                          )
+                        else
+                          _MenuTile(
+                            icon: Icons.storefront_outlined,
+                            title: AppStrings.get(
+                              'register_pharmacy',
+                              locale,
+                            ),
+                            subtitle: 'Register your pharmacy profile',
+                            onTap: () {
+                              Navigator.of(context)
+                                  .pushNamed(AuthRoutes.partnerSignup);
+                            },
+                          ),
                       ],
                     ),
                     const SizedBox(height: 28),
@@ -432,6 +462,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                           onTap: () {
                             Navigator.of(context).pushNamed('/settings');
+                          },
+                        ),
+                        _MenuTile(
+                          icon: Icons.notifications_active_outlined,
+                          title: AppStrings.get(
+                            'notify_me',
+                            locale,
+                          ),
+                          subtitle: 'Create medicine availability alerts',
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/notify');
                           },
                         ),
                       ],
@@ -586,7 +627,7 @@ class _ProfileHeader extends StatelessWidget {
           width: 92,
           height: 92,
           decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.12),
+            color: AppColors.primaryGreen.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
@@ -647,7 +688,7 @@ class _ProfileHeader extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryGreen,
             side: BorderSide(
-              color: AppColors.primaryGreen.withOpacity(0.28),
+              color: AppColors.primaryGreen.withValues(alpha: 0.28),
             ),
             padding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -737,7 +778,7 @@ class _MenuTile extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.09),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.09),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -778,7 +819,7 @@ class _MenuTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.65),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
                   size: 15,
                 ),
               ],

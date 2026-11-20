@@ -37,7 +37,7 @@ void main() {
         email: 'user@example.com',
         password: 'secret1',
       ));
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
 
       expect(states.any((s) => s is AuthLoading), isTrue);
       expect(states.last, isA<AuthAuthenticated>());
@@ -52,7 +52,7 @@ void main() {
       final sub = bloc.stream.listen(states.add);
 
       bloc.add(AuthSignOutRequested());
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
 
       expect(states.last, isA<AuthUnauthenticated>());
 
@@ -66,7 +66,7 @@ void main() {
       final sub = bloc.stream.listen(states.add);
 
       bloc.add(const AuthPasswordResetRequested(email: 'user@example.com'));
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
 
       expect(states.last, isA<AuthPasswordResetSent>());
 

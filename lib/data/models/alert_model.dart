@@ -77,17 +77,20 @@ class AlertModel extends Equatable {
   }
 
   AlertModel copyWith({
+    String? id,
+    String? userId,
     String? medicineName,
     String? searchArea,
     bool? isActive,
+    DateTime? createdAt,
   }) {
     return AlertModel(
-      id: id,
-      userId: userId,
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
       medicineName: medicineName ?? this.medicineName,
       searchArea: searchArea ?? this.searchArea,
       isActive: isActive ?? this.isActive,
-      createdAt: createdAt,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
