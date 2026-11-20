@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       final settings = context.read<SettingsCubit>().state;
       if (settings.hasSeenOnboarding) {
-        Navigator.of(context).pushReplacementNamed(AuthRoutes.home);
+        Navigator.of(context).pushReplacementNamed(AuthRoutes.login);
       } else {
         Navigator.of(context).pushReplacementNamed('/language');
       }

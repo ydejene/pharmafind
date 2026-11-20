@@ -14,7 +14,7 @@ void main() {
     test('initializes with seeded Kigali pharmacies and stock items', () async {
       final approved = await dataSource.getApprovedPharmacies();
       expect(approved.length, 4);
-      expect(approved.any((p) => p.name == 'Green Health Pharmacy'), isTrue);
+      expect(approved.any((p) => p.name == 'Teta Pharmacy'), isTrue);
 
       final stock = await dataSource.getPharmacyStock('pharm-1');
       expect(stock.length, 2);
@@ -36,7 +36,7 @@ void main() {
         final pharmacy = await dataSource.getPharmacyByOwner('owner-1');
         expect(pharmacy, isNotNull);
         expect(pharmacy!.id, 'pharm-1');
-        expect(pharmacy.name, 'Green Health Pharmacy');
+        expect(pharmacy.name, 'Teta Pharmacy');
 
         final unknown = await dataSource.getPharmacyByOwner(
           'non-existent-owner',

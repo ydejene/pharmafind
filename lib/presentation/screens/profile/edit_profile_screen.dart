@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/input_formatters.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../bloc/settings/settings_cubit.dart';
 import '../../widgets/auth_text_field.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -102,6 +104,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<SettingsCubit>().state.locale;
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (!_isSaving) {
@@ -160,7 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 24),
-                  _buildPersonalDetails(),
+                  _buildPersonalDetails(locale),
                   const SizedBox(height: 20),
                   _buildInsuranceDetails(),
                   const SizedBox(height: 28),
@@ -222,14 +226,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildPersonalDetails() {
+  Widget _buildPersonalDetails(String locale) {
     return _buildSection(
       title: 'Personal information',
       icon: Icons.person_outline,
       children: [
         AuthTextField(
           controller: _nameController,
-          label: 'Full name',
+          label: AppStrings.get('full_name', locale),
           hint: 'Enter your full name',
           prefixIcon: Icons.person_outline,
           textCapitalization: TextCapitalization.words,
@@ -244,7 +248,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SizedBox(height: 18),
         AuthTextField(
           controller: _phoneController,
-          label: 'Phone number',
+          label: AppStrings.get('your_phone', locale),
           hint: '+250 7XX XXX XXX',
           prefixIcon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
@@ -270,7 +274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: _selectedInsurance,
+          initialValue: _selectedInsurance,
           isExpanded: true,
           decoration: const InputDecoration(
             prefixIcon: Icon(Icons.shield_outlined, size: 20),

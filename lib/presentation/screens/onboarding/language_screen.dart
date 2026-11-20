@@ -19,7 +19,7 @@ class LanguageScreen extends StatelessWidget {
 
   Future<void> _handleContinue(BuildContext context) async {
     await context.read<SettingsCubit>().markOnboardingSeen();
-    if (context.mounted) AuthNavigation.toHome(context);
+    if (context.mounted) AuthNavigation.toLogin(context);
   }
 
   Future<void> _handlePartnerSignup(BuildContext context) async {

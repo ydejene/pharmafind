@@ -18,7 +18,7 @@ void main() {
       final pharmacies = await repository.getApprovedPharmacies();
       expect(pharmacies, isNotEmpty);
       expect(pharmacies.first, isA<PharmacyEntity>());
-      expect(pharmacies.first.name, 'Green Health Pharmacy');
+      expect(pharmacies.first.name, 'Teta Pharmacy');
     });
 
     test('getPharmacyByOwner maps model to entity or returns null', () async {
