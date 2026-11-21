@@ -1,4 +1,4 @@
-# PharmaFind 🏥💊
+# PharmaFind
 
 > **Medicine nearby. Peace of mind.**  
 > A production-grade, cross-platform Flutter application addressing prescription access, pharmacy discovery, and medicine availability across Kigali and Rwanda.
@@ -13,184 +13,202 @@
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [Overview & Healthcare Impact](#overview--healthcare-impact)
+- [Overview and Healthcare Impact](#overview-and-healthcare-impact)
 - [Key Features](#key-features)
+  - [1. Granular Medicine Discovery and Search](#1-granular-medicine-discovery-and-search)
+  - [2. Interactive Map and Live GPS Directions](#2-interactive-map-and-live-gps-directions)
+  - [3. Medicine Availability Alerts](#3-medicine-availability-alerts)
+  - [4. Pharmacy Partner Management Portal](#4-pharmacy-partner-management-portal)
+  - [5. Dual Authentication and Role Partitioning](#5-dual-authentication-and-role-partitioning)
+  - [6. Trilingual Clinical Localization](#6-trilingual-clinical-localization)
+  - [7. Medical Insurance Provider Profiles](#7-medical-insurance-provider-profiles)
 - [Architectural Blueprint](#architectural-blueprint)
 - [State Management Matrix](#state-management-matrix)
-- [Database Schema & Security Architecture](#database-schema--security-architecture)
+- [Database Schema and Security Architecture](#database-schema-and-security-architecture)
+  - [Firestore Collections Schema](#firestore-collections-schema)
+  - [Firestore Security Rules and Access Control](#firestore-security-rules-and-access-control)
 - [Codebase Structure](#codebase-structure)
-- [Getting Started & Setup Guide](#getting-started--setup-guide)
+- [Getting Started and Setup Guide](#getting-started-and-setup-guide)
   - [Prerequisites](#prerequisites)
-  - [Installation & Execution](#installation--execution)
+  - [Installation and Execution](#installation-and-execution)
   - [Firebase Configuration](#firebase-configuration)
-- [Testing Strategy & Quality Assurance](#testing-strategy--quality-assurance)
+- [Testing Strategy and Quality Assurance](#testing-strategy-and-quality-assurance)
+  - [Test Coverage Breakdown](#test-coverage-breakdown)
 - [Platform Support](#platform-support)
-- [Team Members & Task Allocation](#team-members--task-allocation)
+- [Team Members and Task Allocation](#team-members-and-task-allocation)
 - [License](#license)
 
 ---
 
-## 🌍 Overview & Healthcare Impact
+## Overview and Healthcare Impact
 
-In urban communities across Sub-Saharan Africa, finding prescribed medications is often an arduous, fragmented ordeal. Patients frequently navigate physical fatigue and emotional distress, travelling from pharmacy to pharmacy across Kigali only to find critical prescription items out of stock.
+In urban communities across Sub-Saharan Africa, accessing prescribed medications often represents an arduous, fragmented ordeal. Patients frequently experience physical fatigue and emotional distress traveling from pharmacy to pharmacy across Kigali, only to find critical prescription items out of stock.
 
 **PharmaFind** bridges this vital healthcare accessibility gap:
-- **Centralizes Pharmacy Information:** Surfaces verified community pharmacies in Kigali (Kimironko, Nyarutarama, Remera, Kicukiro, Kiyovu, etc.).
-- **Real-Time Inventory Transparency:** Allows patients to verify real-time medication availability, stock levels, packaging types, and transparent pricing in Rwandan Francs (RWF).
-- **Direct Geolocation & Navigation:** Provides GPS routing directly from the user's live position to the dispensing pharmacy.
-- **Support for Sustainable Development Goals (SDG 3):** Promotes Good Health and Well-Being by shortening the critical window between clinical diagnosis and medication intake.
+
+- **Centralized Pharmacy Directory:** Surfaces verified community pharmacies across Kigali districts (Kimironko, Nyarutarama, Remera, Kicukiro, Kiyovu, and adjacent areas).
+- **Real-Time Inventory Transparency:** Enables patients to check live medication availability, packaging quantities, and verified pricing in Rwandan Francs (RWF).
+- **Integrated Geolocation and Routing:** Provides GPS routing directly from the user's current coordinates to the dispensing pharmacy.
+- **Alignment with UN Sustainable Development Goals (SDG 3):** Advances Good Health and Well-Being by shortening the critical window between clinical diagnosis and treatment commencement.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔍 1. Granular Medicine Discovery & Search
-- **Sub-Second Search Pipeline:** Instant prefix queries powered by `SearchCubit` with normalized lowercase indexing (`medicineNameLower`).
-- **Comprehensive Stock Status:** Badges indicate *In Stock* (with pack quantities), *Low Stock*, or *Out of Stock*.
-- **Price Transparency:** Real-time unit pricing formatted in RWF.
+### 1. Granular Medicine Discovery and Search
+- **Sub-Second Search Pipeline:** Instant prefix queries managed by `SearchCubit` with normalized lowercase indexing (`medicineNameLower`).
+- **Stock Status Indicators:** Distinct badges indicate whether items are *In Stock* (including available pack counts), *Low Stock*, or *Out of Stock*.
+- **Price Transparency:** Live unit prices formatted clearly in RWF.
 - **Stock Reconfirmation:** Community-driven stock validation allowing users to confirm inventory on-site with a single tap.
 
-### 📍 2. Interactive Map & Live GPS Directions
-- **OpenStreetMap & FlutterMap Integration:** Zero proprietary API key lock-in, rendering vector-tiled mapping with smooth pan and pinch-to-zoom.
-- **Dynamic Camera-Fit Bounds:** Mathematical auto-framing algorithm (`_fitMapToMarkers`) that dynamically calculates `LatLngBounds` between user GPS and pharmacy coordinates, with custom asymmetrical padding for UI overlays.
-- **External Maps Intent:** Native integration launching Google Maps or Apple Maps app directions via `geo:` and `https://www.google.com/maps/dir/` URI protocols.
-- **Direct Telephony Integration:** One-tap calling to pharmacy dispensaries via `tel:` URLs.
+### 2. Interactive Map and Live GPS Directions
+- **OpenStreetMap and FlutterMap Integration:** Free, vector-tiled mapping with smooth pan, zoom, and orientation without proprietary map API lock-in.
+- **Dynamic Camera Bounds Algorithm:** Mathematical auto-framing (`_fitMapToMarkers`) calculating `LatLngBounds` between user GPS and pharmacy coordinates, with custom asymmetrical padding for bottom sheets and navigation bars.
+- **External Maps Intent:** Native integration launching Google Maps or Apple Maps app directions through `geo:` and `https://www.google.com/maps/dir/` URI protocols.
+- **Telephony Action:** Instant dialer invocation to pharmacy dispensaries via `tel:` URLs.
 
-### 🔔 3. Medicine Availability Alerts
-- **Notification Requests:** Users can create custom availability alerts when a prescription medicine is currently unavailable or out of stock in their district.
-- **Persistent Firestore Storage:** Monitored alerts stored in the `/alerts` collection, tied directly to the user's account for automated inventory notification triggers.
+### 3. Medicine Availability Alerts
+- **Notification Requests:** Users can submit availability alerts when a prescription medicine is currently unavailable or out of stock in their district.
+- **Persistent Storage:** Alerts are recorded in Cloud Firestore under `/alerts` and tied to user profiles for automated notification triggers upon inventory restocking.
 
-### 🏪 4. Pharmacy Partner Management Portal
-- **Role-Based Authentication:** Dedicated partner experience for licensed pharmacy owners.
+### 4. Pharmacy Partner Management Portal
+- **Role-Based Experience:** Dedicated interface tailored specifically for licensed pharmacy owners.
 - **Verification Workflow:** Multi-stage lifecycle tracking for pharmacy onboarding (`pending`, `approved`, `rejected`) with license number validation.
-- **Stock Inventory CRUD:** Real-time management interface to add new medicines, update quantities and prices, toggle stock status, and remove discontinued medications.
-- **Live Inventory Synchronization:** Reactive stream subscriptions via `WatchPharmacyStockUseCase` with automatic leak-free disposal.
+- **Stock Inventory CRUD:** Full management interface to add new medications, update quantities and prices, adjust stock status, and remove discontinued items.
+- **Reactive Inventory Streams:** Live inventory synchronization via `WatchPharmacyStockUseCase` with automatic lifecycle subscription cancellation upon teardown.
 
-### 🔐 5. Dual Authentication & Role Partitioning
-- **Flexible Access:** Guest browsing enabled out-of-the-box; users can search medicines without mandatory login.
-- **Email & Password Authentication:** Client-side validation with real-time password strength evaluation (regex-based tracking length, numbers, casing, and symbols).
-- **Google OAuth Integration:** Seamless single-tap sign-in via `GoogleSignIn` and Firebase Authentication.
-- **Secure Password Reset:** Automated self-service email dispatch for forgotten passwords.
+### 5. Dual Authentication and Role Partitioning
+- **Guest Access:** Guest browsing enabled out-of-the-box, allowing users to search medicines without mandatory login.
+- **Email and Password Authentication:** Client-side validation with real-time password strength evaluation across length, numbers, casing, and symbols.
+- **Google OAuth Integration:** Single-tap sign-in via `GoogleSignIn` and Firebase Authentication.
+- **Password Recovery:** Automated self-service email dispatch for forgotten passwords.
 
-### 🌐 6. Trilingual Clinical Localization
-- **Native Language Switching:** Immediate switching across **English**, **Kinyarwanda** (*Murakaza neza*), and **French** (*Bienvenue*) without application reload.
+### 6. Trilingual Clinical Localization
+- **Instant Language Switching:** Seamless reactive switching across **English**, **Kinyarwanda** (*Murakaza neza*), and **French** (*Bienvenue*) without application restarts.
 - **Clinical Terminology:** Accurate local translations for dosage forms, insurance co-pays, dispensary hours, and stock states.
 
-### 🛡️ 7. Medical Insurance Provider Profiles
-- **Insurance Scheme Selection:** Support for major Rwandan insurance partners including **RSSB Medical Scheme (RAMA)**, **Britam**, **Eden Care**, **Radiant**, and **MMI**.
-- **Member Policy Management:** Secure storage of insurance policy IDs to expedite in-person dispensary billing.
+### 7. Medical Insurance Provider Profiles
+- **Insurance Scheme Selection:** Integrated support for major Rwandan health insurance providers, including **RSSB Medical Scheme (RAMA)**, **Britam**, **Eden Care**, **Radiant**, and **MMI**.
+- **Member Policy Management:** Secure storage of policy numbers to expedite in-person dispensary billing.
 
 ---
 
-## 🏛️ Architectural Blueprint
+## Architectural Blueprint
 
 PharmaFind is engineered strictly following **Clean Architecture** principles, enforcing separation of concerns, high testability, and framework independence.
 
 ```
-                  ┌────────────────────────────────────────┐
-                  │           Presentation Layer           │
-                  │  (Screens, Widgets, BLoCs & Cubits)    │
-                  └───────────────────┬────────────────────┘
-                                      │ depends on
-                                      ▼
-                  ┌────────────────────────────────────────┐
-                  │              Domain Layer              │
-                  │ (Entities, Use Cases, Repos Contracts) │
-                  └───────────────────▲────────────────────┘
-                                      │ implements
-                                      │
-                  ┌───────────────────┴────────────────────┐
-                  │               Data Layer               │
-                  │ (Models, Repositories, Remote & Local) │
-                  └────────────────────────────────────────┘
+                  +----------------------------------------+
+                  |           Presentation Layer           |
+                  |  (Screens, Widgets, BLoCs & Cubits)    |
+                  +-------------------T--------------------+
+                                      | depends on
+                                      v
+                  +----------------------------------------+
+                  |              Domain Layer              |
+                  | (Entities, Use Cases, Repos Contracts) |
+                  +-------------------^--------------------+
+                                      | implements
+                                      |
+                  +-------------------T--------------------+
+                  |               Data Layer               |
+                  | (Models, Repositories, Remote & Local) |
+                  +----------------------------------------+
 ```
 
+### Layer Responsibilities
+
 1. **Domain Layer (Pure Dart):**
-   - Independent of Flutter, Firebase, or any third-party framework.
-   - Contains pure business models (`UserEntity`, `PharmacyEntity`, `StockItemEntity`, `AlertEntity`, `SettingsEntity`).
+   - Independent of Flutter, Firebase, or external packages.
+   - Contains immutable domain entities (`UserEntity`, `PharmacyEntity`, `StockItemEntity`, `AlertEntity`, `SettingsEntity`).
    - Declares granular, single-responsibility use cases (`SearchMedicineUseCase`, `GetPharmacyStockUseCase`, `SignInWithEmailUseCase`, `CreateAlertUseCase`, etc.).
-   - Specifies abstract repository interfaces (`IAuthRepository`, `IPharmacyRepository`, `IAlertRepository`, `ISettingsRepository`).
+   - Defines abstract repository contracts (`IAuthRepository`, `IPharmacyRepository`, `IAlertRepository`, `ISettingsRepository`).
 
 2. **Data Layer:**
    - Implements domain repository contracts (`AuthRepositoryImpl`, `PharmacyRepositoryImpl`, `AlertRepositoryImpl`, `SettingsRepositoryImpl`).
-   - Serializes data via Models (`UserModel`, `PharmacyModel`, `StockItemModel`, `AlertModel`) with explicit `toEntity()` and `fromEntity()` transformations.
+   - Serializes data via models (`UserModel`, `PharmacyModel`, `StockItemModel`, `AlertModel`) with explicit `toEntity()` and `fromEntity()` mappings.
    - Integrates remote datasources (`FirebaseAuthDataSource`, `FirestorePharmacyDataSource`, `FirestoreAlertDataSource`) and local persistence (`SharedPreferencesSettingsDataSource`, `MockPharmacyDataSource`, `MockAuthDataSource`).
 
 3. **Presentation Layer:**
-   - Driven by `flutter_bloc` (BLoC and Cubit pattern).
-   - UI widgets observe immutable states emitted by Cubits/BLoCs via `BlocBuilder`, `BlocConsumer`, and `BlocListener`.
-   - UI widgets do not perform direct I/O, business validation, or direct database calls.
+   - Powered by `flutter_bloc` (BLoC and Cubit patterns).
+   - UI widgets observe immutable states emitted by Cubits/BLoCs through `BlocBuilder`, `BlocConsumer`, and `BlocListener`.
+   - UI components contain zero I/O, business validation, or direct database dependencies.
 
 ---
 
-## ⚙️ State Management Matrix
+## State Management Matrix
 
-| BLoC / Cubit | Scope & Role | Input Triggers | Emitted States |
+| BLoC / Cubit | Scope and Role | Input Triggers | Emitted States |
 | :--- | :--- | :--- | :--- |
-| **`AuthBloc`** | Global Authentication lifecycle | `AuthCheckRequested`, `AuthLoginRequested`, `AuthRegisterRequested`, `AuthGoogleSignInRequested`, `AuthLogoutRequested` | `AuthInitial`, `AuthLoading`, `AuthAuthenticated`, `AuthUnauthenticated`, `AuthError`, `AuthPasswordResetSent` |
-| **`SearchCubit`** | Medicine query & pharmacy selection | `searchMedicine(query)`, `selectResult(stockItem)`, `clearSearch()` | `SearchState` (`initial`, `loading`, `loaded`, `error`, query string, results list, selectedItem) |
-| **`PharmacyCubit`** | Partner pharmacy profile & stock CRUD | `loadPharmacy(ownerId)`, `createPharmacy()`, `addStockItem()`, `updateStockItem()`, `deleteStockItem()`, `subscribeToStock()` | `PharmacyState` (`initial`, `loading`, `loaded`, `error`, pharmacy entity, stockItems list) |
-| **`AlertCubit`** | Availability alert creation & management | `createAlert(userId, medicine, area)`, `reset()` | `AlertState` (`initial`, `loading`, `saved`, `error`, errorMessage) |
-| **`SettingsCubit`** | Theme, localization & preference cache | `setLocale(code)`, `setDarkMode(bool)`, `setStockAlerts(bool)`, `setAppUpdates(bool)`, `markOnboardingSeen()` | `SettingsState` (locale: `en`/`rw`/`fr`, isDarkMode, stockAlerts, appUpdates, hasSeenOnboarding) |
+| **`AuthBloc`** | Global authentication lifecycle | `AuthCheckRequested`, `AuthLoginRequested`, `AuthRegisterRequested`, `AuthGoogleSignInRequested`, `AuthLogoutRequested` | `AuthInitial`, `AuthLoading`, `AuthAuthenticated`, `AuthUnauthenticated`, `AuthError`, `AuthPasswordResetSent` |
+| **`SearchCubit`** | Medicine query and pharmacy selection | `searchMedicine(query)`, `selectResult(stockItem)`, `clearSearch()` | `SearchState` (`initial`, `loading`, `loaded`, `error`, query string, results list, selectedItem) |
+| **`PharmacyCubit`** | Partner pharmacy profile and stock CRUD | `loadPharmacy(ownerId)`, `createPharmacy()`, `addStockItem()`, `updateStockItem()`, `deleteStockItem()`, `subscribeToStock()` | `PharmacyState` (`initial`, `loading`, `loaded`, `error`, pharmacy entity, stockItems list) |
+| **`AlertCubit`** | Availability alert creation and management | `createAlert(userId, medicine, area)`, `reset()` | `AlertState` (`initial`, `loading`, `saved`, `error`, errorMessage) |
+| **`SettingsCubit`** | Theme, localization, and preference caching | `setLocale(code)`, `setDarkMode(bool)`, `setStockAlerts(bool)`, `setAppUpdates(bool)`, `markOnboardingSeen()` | `SettingsState` (locale: `en`/`rw`/`fr`, isDarkMode, stockAlerts, appUpdates, hasSeenOnboarding) |
 
 ---
 
-## 🗄️ Database Schema & Security Architecture
+## Database Schema and Security Architecture
 
-PharmaFind uses Google Cloud Firestore organized into normalized top-level collections optimized for fast querying and granular security rules:
+PharmaFind uses Google Cloud Firestore organized into normalized top-level collections optimized for low-latency queries and granular access control rules.
+
+### Firestore Collections Schema
 
 ```
 cloud_firestore
-├── users/{userId}
-│   ├── uid: string (PK)
-│   ├── email: string
-│   ├── displayName: string
-│   ├── role: "patient" | "partner" | "admin"
-│   ├── phone: string
-│   ├── insuranceProvider: string
-│   ├── insuranceId: string
-│   └── createdAt: timestamp
-│
-├── pharmacies/{pharmacyId}
-│   ├── id: string (PK)
-│   ├── ownerId: string (FK -> users.uid)
-│   ├── name: string
-│   ├── licenseNumber: string
-│   ├── area: string
-│   ├── district: string
-│   ├── phone: string
-│   ├── hours: string
-│   ├── latitude: number
-│   ├── longitude: number
-│   ├── status: "pending" | "approved" | "rejected"
-│   ├── acceptsInsurance: boolean
-│   └── createdAt: timestamp
-│
-├── stock/{stockId}
-│   ├── id: string (PK)
-│   ├── pharmacyId: string (FK -> pharmacies.id)
-│   ├── medicineName: string
-│   ├── medicineNameLower: string (prefix-search indexed)
-│   ├── status: "in_stock" | "low_stock" | "out_of_stock"
-│   ├── quantity: number
-│   ├── price: number (RWF)
-│   └── updatedAt: timestamp
-│
-└── alerts/{alertId}
-    ├── id: string (PK)
-    ├── userId: string (FK -> users.uid)
-    ├── medicineName: string
-    ├── searchArea: string
-    ├── isActive: boolean
-    └── createdAt: timestamp
+|-- users/{userId}
+|   |-- uid: string (Primary Key)
+|   |-- email: string
+|   |-- displayName: string
+|   |-- role: "patient" | "partner" | "admin"
+|   |-- phone: string
+|   |-- insuranceProvider: string
+|   |-- insuranceId: string
+|   +-- createdAt: timestamp
+|
+|-- pharmacies/{pharmacyId}
+|   |-- id: string (Primary Key)
+|   |-- ownerId: string (Foreign Key -> users.uid)
+|   |-- name: string
+|   |-- licenseNumber: string
+|   |-- area: string
+|   |-- district: string
+|   |-- phone: string
+|   |-- hours: string
+|   |-- latitude: number
+|   |-- longitude: number
+|   |-- status: "pending" | "approved" | "rejected"
+|   |-- acceptsInsurance: boolean
+|   +-- createdAt: timestamp
+|
+|-- stock/{stockId}
+|   |-- id: string (Primary Key)
+|   |-- pharmacyId: string (Foreign Key -> pharmacies.id)
+|   |-- medicineName: string
+|   |-- medicineNameLower: string (prefix search indexed)
+|   |-- status: "in_stock" | "low_stock" | "out_of_stock"
+|   |-- quantity: number
+|   |-- price: number (RWF)
+|   +-- updatedAt: timestamp
+|
++-- alerts/{alertId}
+    |-- id: string (Primary Key)
+    |-- userId: string (Foreign Key -> users.uid)
+    |-- medicineName: string
+    |-- searchArea: string
+    |-- isActive: boolean
+    +-- createdAt: timestamp
 ```
 
-### 🛡️ Firestore Security Rules Highlights (`firestore.rules`)
-- **Public Read for Discovery:** Unauthenticated guest users can freely browse approved pharmacies and medicine stock.
-- **Strict Role-Based Access Control (RBAC):** Only registered users with verified partner accounts can create pharmacy profiles.
-- **Cross-Document Attribute Validation:** To modify or delete an item in `/stock/{stockId}`, Firestore rules execute cross-document validation to guarantee that the requesting user's UID matches the `ownerId` of the referenced parent pharmacy document:
+### Firestore Security Rules and Access Control
+
+PharmaFind enforces attribute-based and role-based security rules defined in `firestore.rules`:
+
+- **Public Read Access for Medicine Discovery:** Unauthenticated guest users can freely read approved pharmacies and medication stock.
+- **Strict Role-Based Registration:** Only authenticated users can register pharmacy documents.
+- **Cross-Document Ownership Validation:** Stock item creation, modification, and deletion are gated by cross-document lookups verifying that the requesting user owns the parent pharmacy:
   ```javascript
   match /stock/{stockId} {
     allow read: if true;
@@ -200,63 +218,63 @@ cloud_firestore
       && (isAdmin() || get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid);
   }
   ```
-- **Self-Isolated User Profiles & Alerts:** Users can only view, edit, or delete their own profile data and alert requests (`request.auth.uid == userId`).
+- **Self-Isolated User Profiles and Alerts:** Profile data and alert documents are readable and editable solely by their respective account owners (`request.auth.uid == userId`).
 
 ---
 
-## 📂 Codebase Structure
+## Codebase Structure
 
 ```
 lib/
-├── core/                                # Shared cross-cutting foundations
-│   ├── constants/                       # AppColors, AppStrings (trilingual), AuthRoutes
-│   ├── theme/                           # Light and Dark ThemeData definitions
-│   └── utils/                           # Validators, phone formatters, input matchers
-├── data/                                # Data layer implementation
-│   ├── datasources/                     # Firebase Auth, Firestore, local SharedPreferences
-│   ├── models/                          # Data models with fromMap/toMap/fromEntity/toEntity
-│   └── repositories/                    # Repository implementations
-├── domain/                              # Pure business layer (zero framework dependencies)
-│   ├── entities/                        # Pure domain entities (Immutable Equatable objects)
-│   ├── repositories/                    # Abstract repository contracts
-│   └── usecases/                        # Single-responsibility use cases
-│       ├── alert/                       # Alert persistence use cases
-│       ├── auth/                        # Registration, login, Google OAuth, reset use cases
-│       ├── pharmacy/                    # Pharmacy search, stock streaming, stock CRUD use cases
-│       └── settings/                    # Preferences, localization, onboarding use cases
-├── presentation/                        # UI and state management
-│   ├── bloc/                            # BLoCs & Cubits (auth, search, pharmacy, alert, settings)
-│   ├── screens/                         # Feature screens
-│   │   ├── home/                        # HomeScreen, SearchResultsScreen, AvailabilityAlertScreen
-│   │   ├── onboarding/                  # LanguageScreen, LoginScreen, RegisterScreen, ForgotPassword
-│   │   ├── partner/                     # Dashboard, Stock CRUD, Signup, Verification screens
-│   │   ├── pharmacy/                    # PharmacyDetailScreen, DirectionsScreen (Map & Route)
-│   │   ├── profile/                     # ProfileScreen, EditProfileScreen
-│   │   ├── settings/                    # SettingsScreen
-│   │   └── splash/                      # SplashScreen
-│   ├── utils/                           # AuthNavigation, Snackbar helpers
-│   └── widgets/                         # Reusable custom UI components (PharmaFindLogo, PharmacyCard, etc.)
-├── app.dart                             # MaterialApp setup, dynamic theme mode & onGenerateRoute
-├── firebase_options.dart                # Generated Firebase configuration
-└── main.dart                            # Application entry point with MultiBlocProvider injection
+|-- core/                                # Shared cross-cutting foundations
+|   |-- constants/                       # AppColors, AppStrings (trilingual), AuthRoutes
+|   |-- theme/                           # Light and Dark ThemeData configurations
+|   +-- utils/                           # Validators, phone formatters, input matchers
+|-- data/                                # Data layer implementation
+|   |-- datasources/                     # Firebase Auth, Firestore, local SharedPreferences
+|   |-- models/                          # Data models with fromMap/toMap/fromEntity/toEntity
+|   +-- repositories/                    # Repository implementations
+|-- domain/                              # Pure business layer (zero framework dependencies)
+|   |-- entities/                        # Pure domain entities (Immutable Equatable objects)
+|   |-- repositories/                    # Abstract repository contracts
+|   +-- usecases/                        # Single-responsibility use cases
+|       |-- alert/                       # Alert persistence use cases
+|       |-- auth/                        # Registration, login, Google OAuth, reset use cases
+|       |-- pharmacy/                    # Pharmacy search, stock streaming, stock CRUD use cases
+|       +-- settings/                    # Preferences, localization, onboarding use cases
+|-- presentation/                        # UI and state management
+|   |-- bloc/                            # BLoCs & Cubits (auth, search, pharmacy, alert, settings)
+|   |-- screens/                         # Feature screens
+|   |   |-- home/                        # HomeScreen, SearchResultsScreen, AvailabilityAlertScreen
+|   |   |-- onboarding/                  # LanguageScreen, LoginScreen, RegisterScreen, ForgotPassword
+|   |   |-- partner/                     # Dashboard, Stock CRUD, Signup, Verification screens
+|   |   |-- pharmacy/                    # PharmacyDetailScreen, DirectionsScreen (Map & Route)
+|   |   |-- profile/                     # ProfileScreen, EditProfileScreen
+|   |   |-- settings/                    # SettingsScreen
+|   |   +-- splash/                      # SplashScreen
+|   |-- utils/                           # AuthNavigation, Snackbar helpers
+|   +-- widgets/                         # Reusable custom UI components (PharmaFindLogo, PharmacyCard, etc.)
+|-- app.dart                             # MaterialApp setup, dynamic theme mode & onGenerateRoute
+|-- firebase_options.dart                # Generated Firebase configuration
++-- main.dart                            # Application entry point with MultiBlocProvider injection
 ```
 
 ---
 
-## 🚀 Getting Started & Setup Guide
+## Getting Started and Setup Guide
 
 ### Prerequisites
 - **Flutter SDK:** Version `3.29.0` or higher (stable channel).
 - **Dart SDK:** Version `3.7.0` or higher (bundled with Flutter).
-- **IDE:** Android Studio (with Flutter plugin) or VS Code (with Flutter & Dart extensions).
+- **IDE:** Android Studio (with Flutter plugin) or Visual Studio Code (with Flutter and Dart extensions).
 - **Platform Toolchains:**
   - **Android:** Android Studio with Android SDK API Level 26+ and Java 17+.
-  - **iOS:** macOS with Xcode 16+ and CocoaPods / Swift Package Manager.
+  - **iOS:** macOS with Xcode 16+ and Swift Package Manager.
   - **Web:** Google Chrome browser.
 
 ---
 
-### Installation & Execution
+### Installation and Execution
 
 1. **Clone the repository:**
    ```bash
@@ -285,19 +303,19 @@ lib/
    ```
 
 6. **Launch the application:**
-   - **On Android Emulator / Physical Device:**
+   - **Android Emulator / Physical Device:**
      ```bash
      flutter run -d android
      ```
-   - **On iOS Simulator:**
+   - **iOS Simulator:**
      ```bash
      flutter run -d ios
      ```
-   - **On Google Chrome (Web):**
+   - **Web (Google Chrome):**
      ```bash
      flutter run -d chrome
      ```
-   - **On macOS Desktop:**
+   - **macOS Desktop:**
      ```bash
      flutter run -d macos
      ```
@@ -306,10 +324,10 @@ lib/
 
 ### Firebase Configuration
 
-The project connects to the Firebase project `pharmafind-6e48a`:
-- **Android:** Handled via `android/app/google-services.json` and the Google Services Gradle plugin.
-- **iOS:** Handled via `ios/Runner/GoogleService-Info.plist` and Swift Package Manager SDK imports.
-- **Web & Desktop:** Initialized via `lib/firebase_options.dart` through `DefaultFirebaseOptions.currentPlatform`.
+The application is configured for the Firebase project `pharmafind-6e48a`:
+- **Android:** Handled by `android/app/google-services.json` and the Google Services Gradle plugin.
+- **iOS:** Handled by `ios/Runner/GoogleService-Info.plist` and Swift Package Manager SDK imports.
+- **Web and Desktop:** Initialized through `lib/firebase_options.dart` via `DefaultFirebaseOptions.currentPlatform`.
 
 To deploy Firestore security rules:
 ```bash
@@ -318,7 +336,7 @@ firebase deploy --only firestore:rules
 
 ---
 
-## 🧪 Testing Strategy & Quality Assurance
+## Testing Strategy and Quality Assurance
 
 PharmaFind enforces rigorous software verification with **188 automated tests** passing at a **100% success rate**.
 
@@ -326,23 +344,24 @@ PharmaFind enforces rigorous software verification with **188 automated tests** 
 flutter test
 ```
 
-### Test Coverage Hierarchy:
+### Test Coverage Breakdown
+
 - **Unit Tests (`test/unit/`):**
-  - Validation logic (`Validators.validateEmail`, `validatePassword`, `RwandaPhoneValidator`).
-  - String localization completeness across English, Kinyarwanda, and French (`app_strings_test.dart`).
+  - Input validation algorithms (`Validators.validateEmail`, `validatePassword`, `RwandaPhoneValidator`).
+  - Trilingual localization completeness across English, Kinyarwanda, and French (`app_strings_test.dart`).
   - Pure domain entity immutability and equality (`Equatable` props).
   - Data model serialization (`toMap`, `fromMap`, `toEntity`, `fromEntity`).
-  - BLoC & Cubit state transitions using mock data sources (`auth_bloc_test.dart`, `pharmacy_cubit_test.dart`, `search_cubit_test.dart`).
+  - BLoC and Cubit state transitions using mock data sources (`auth_bloc_test.dart`, `pharmacy_cubit_test.dart`, `search_cubit_test.dart`).
 - **Widget Tests (`test/widget/`):**
   - UI component rendering and interaction (`AuthTextField`, `AuthSubmitButton`, `PasswordStrengthIndicator`, `PharmaFindLogo`, `PharmacyCard`).
-  - Screen rendering and validation behavior (`ProfileScreen`, `EditProfileScreen`, `PartnerSignupScreen`, `PartnerStockScreen`).
-- **Integration & Flow Tests (`test/presentation/`):**
-  - Complete authentication and onboarding user journey (`auth_flow_test.dart`): Language selection $\rightarrow$ Onboarding $\rightarrow$ Login $\rightarrow$ Registration $\rightarrow$ Password Reset $\rightarrow$ Guest bypass to Home.
-  - Test provider isolation harness (`test/helpers/test_providers.dart`) injecting mock repositories to ensure isolated, reproducible test runs.
+  - Form validation states and screen transitions (`ProfileScreen`, `EditProfileScreen`, `PartnerSignupScreen`, `PartnerStockScreen`).
+- **Integration and Flow Tests (`test/presentation/`):**
+  - End-to-end authentication and onboarding user journey (`auth_flow_test.dart`): Language selection to Onboarding to Login to Registration to Password Reset to Guest bypass.
+  - Test provider isolation harness (`test/helpers/test_providers.dart`) injecting mock repositories for consistent, isolated test runs.
 
 ---
 
-## 📱 Platform Support
+## Platform Support
 
 | Platform | Support Status | Minimum OS Target | Tested Environment |
 | :--- | :--- | :--- | :--- |
@@ -353,9 +372,9 @@ flutter test
 
 ---
 
-## 👥 Team Members & Task Allocation
+## Team Members and Task Allocation
 
-PharmaFind was developed collaboratively as a summative mobile application project:
+PharmaFind was developed collaboratively as a summative mobile application development project:
 
 | Member | Role | Key Module Responsibilities |
 | :--- | :--- | :--- |
@@ -366,6 +385,6 @@ PharmaFind was developed collaboratively as a summative mobile application proje
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
