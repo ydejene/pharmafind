@@ -11,7 +11,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-/// Screen for managing pharmacy partner medicine stock (Stage 5).
+/// Screen for managing pharmacy partner medicine stock.
 ///
 /// **Architecture & Access Control:**
 /// - Uses pure domain entities ([StockItemEntity], [PharmacyEntity]).
@@ -19,7 +19,7 @@ import '../../bloc/settings/settings_cubit.dart';
 ///   [PharmacyCubit.addStockItem], [PharmacyCubit.updateStockItem],
 ///   [PharmacyCubit.deleteStockItem], and [PharmacyCubit.refreshStock].
 /// - Enforces role-based access: requires authenticated partner account.
-/// - Requires an existing pharmacy record associated with the authenticated partner.
+/// - Requires an approved pharmacy record associated with the authenticated partner.
 /// - Synchronizes with real-time stock stream and supports pull-to-refresh.
 /// - Validates required fields, price (> 0), and quantity (>= 0).
 /// - Enforces explicit deletion confirmation.
@@ -31,6 +31,37 @@ class PartnerStockScreen extends StatefulWidget {
 }
 
 class _PartnerStockScreenState extends State<PartnerStockScreen> {
+  bool _isRedirecting = false;
+
+  void _checkAndRedirect(PharmacyEntity? pharmacy) {
+    if (_isRedirecting || !mounted || pharmacy == null) return;
+    if (pharmacy.isApproved) return;
+
+    // Incomplete documents check: do not redirect to pending
+    final hasUnsubmittedDocs = pharmacy.submittedAt == null ||
+        pharmacy.licenseUrl == null ||
+        pharmacy.licenseUrl!.isEmpty ||
+        pharmacy.rmohCertUrl == null ||
+        pharmacy.rmohCertUrl!.isEmpty;
+    if (hasUnsubmittedDocs) return;
+
+    if (pharmacy.status == 'pending' || pharmacy.isResubmittedAwaitingReview) {
+      _isRedirecting = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed(AuthRoutes.partnerPending);
+        }
+      });
+    } else if (pharmacy.isRejected) {
+      _isRedirecting = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed(AuthRoutes.partnerRejected);
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,13 +69,19 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
     final pharmacyState = context.read<PharmacyCubit>().state;
 
     if (authState is AuthAuthenticated && authState.user.isPartner) {
-      if (pharmacyState.pharmacy == null &&
+      final pharmacy = pharmacyState.pharmacy;
+      final isStale = pharmacy != null && pharmacy.ownerId != authState.user.uid;
+      if ((isStale || pharmacy == null) &&
           pharmacyState.status != PharmacyStatus.loading) {
         context.read<PharmacyCubit>().loadPharmacy(authState.user.uid);
-      } else if (pharmacyState.pharmacy != null) {
-        context.read<PharmacyCubit>().subscribeToStock(
-          pharmacyState.pharmacy!.id,
-        );
+      } else if (pharmacy != null && pharmacy.ownerId == authState.user.uid) {
+        if (pharmacy.isApproved) {
+          context.read<PharmacyCubit>().subscribeToStock(
+            pharmacy.id,
+          );
+        } else {
+          _checkAndRedirect(pharmacy);
+        }
       }
     }
   }
@@ -61,9 +98,20 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
           listener: (context, state) {
             if (state is AuthAuthenticated && state.user.isPartner) {
               final pState = context.read<PharmacyCubit>().state;
-              if (pState.pharmacy == null &&
+              final isStale = pState.pharmacy != null &&
+                  pState.pharmacy!.ownerId != state.user.uid;
+              if ((isStale || pState.pharmacy == null) &&
                   pState.status != PharmacyStatus.loading) {
                 context.read<PharmacyCubit>().loadPharmacy(state.user.uid);
+              } else if (pState.pharmacy != null &&
+                  pState.pharmacy!.ownerId == state.user.uid) {
+                if (pState.pharmacy!.isApproved) {
+                  context.read<PharmacyCubit>().subscribeToStock(
+                    pState.pharmacy!.id,
+                  );
+                } else {
+                  _checkAndRedirect(pState.pharmacy);
+                }
               }
             }
           },
@@ -79,6 +127,20 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
                   backgroundColor: AppColors.errorRed,
                 ),
               );
+            } else if (state.status == PharmacyStatus.loaded &&
+                state.pharmacy != null) {
+              final auth = context.read<AuthBloc>().state;
+              if (auth is AuthAuthenticated && auth.user.isPartner) {
+                if (state.pharmacy!.ownerId == auth.user.uid) {
+                  if (state.pharmacy!.isApproved) {
+                    context.read<PharmacyCubit>().subscribeToStock(
+                      state.pharmacy!.id,
+                    );
+                  } else {
+                    _checkAndRedirect(state.pharmacy);
+                  }
+                }
+              }
             }
           },
         ),
@@ -208,7 +270,31 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
     bool hasError,
     String locale,
   ) {
-    // 3. Loading state while pharmacy is unresolved
+    // 3. Stale owner check: loaded pharmacy belongs to a different user
+    final isStaleOwner =
+        pharmacy != null && pharmacy.ownerId != authState.user.uid;
+    if (isStaleOwner) {
+      if (pharmacyState.status != PharmacyStatus.loading) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.read<PharmacyCubit>().loadPharmacy(authState.user.uid);
+          }
+        });
+      }
+      return Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white,
+          title: Text(AppStrings.get('manage_stock', locale)),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryGreen),
+        ),
+      );
+    }
+
+    // 4. Loading state while pharmacy is unresolved
     if ((pharmacyState.status == PharmacyStatus.initial || isLoading) &&
         pharmacy == null) {
       return Scaffold(
@@ -224,8 +310,8 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
       );
     }
 
-    // 4. Pharmacy load error
-    if (pharmacy == null && hasError) {
+    // 5. Pharmacy load error
+    if (hasError) {
       return Scaffold(
         backgroundColor: AppColors.cream,
         appBar: AppBar(
@@ -266,7 +352,7 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
       );
     }
 
-    // 5. No Pharmacy Registered Check
+    // 6. No Pharmacy Registered Check
     if (pharmacy == null) {
       return Scaffold(
         backgroundColor: AppColors.cream,
@@ -318,6 +404,192 @@ class _PartnerStockScreenState extends State<PartnerStockScreen> {
         ),
       );
     }
+
+    // 7. Require strictly approved status to access stock management
+    if (!pharmacy.isApproved) {
+      // 7a. Incomplete verification documents check (takes precedence over default pending status)
+      if (pharmacy.submittedAt == null ||
+          pharmacy.licenseUrl == null ||
+          pharmacy.licenseUrl!.isEmpty ||
+          pharmacy.rmohCertUrl == null ||
+          pharmacy.rmohCertUrl!.isEmpty) {
+        return Scaffold(
+          backgroundColor: AppColors.cream,
+          appBar: AppBar(
+            backgroundColor: AppColors.primaryGreen,
+            foregroundColor: Colors.white,
+            title: Text(AppStrings.get('manage_stock', locale)),
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.upload_file_outlined,
+                      size: 48,
+                      color: AppColors.accentOrange,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Verification Documents Required',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'You must upload your pharmacy license and RMOH certificate before managing medicine stock.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textMedium),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () =>
+                        Navigator.of(context)
+                            .pushNamed(AuthRoutes.partnerLicense),
+                    icon: const Icon(Icons.file_upload_outlined),
+                    label: const Text('Upload Documents'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      // 7b. Pending verification status guard & redirect (only when documents are submitted)
+      if (pharmacy.status == 'pending' || pharmacy.isResubmittedAwaitingReview) {
+        _checkAndRedirect(pharmacy);
+        return Scaffold(
+          backgroundColor: AppColors.cream,
+          appBar: AppBar(
+            backgroundColor: AppColors.primaryGreen,
+            foregroundColor: Colors.white,
+            title: Text(AppStrings.get('manage_stock', locale)),
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningYellow.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.hourglass_top,
+                      size: 48,
+                      color: AppColors.warningYellow,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Verification Under Review',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Stock management is locked while your pharmacy documents are pending review.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textMedium),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AuthRoutes.partnerPending),
+                    child: const Text('View Verification Status'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      // 7c. Rejected verification status guard & redirect
+      if (pharmacy.isRejected) {
+        _checkAndRedirect(pharmacy);
+        return Scaffold(
+          backgroundColor: AppColors.cream,
+          appBar: AppBar(
+            backgroundColor: AppColors.primaryGreen,
+            foregroundColor: Colors.white,
+            title: Text(AppStrings.get('manage_stock', locale)),
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorRed.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 48,
+                      color: AppColors.errorRed,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Verification Unsuccessful',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Stock management is disabled. Please review the rejection reason and update your documents.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textMedium),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AuthRoutes.partnerRejected),
+                    child: const Text('Review Rejection Details'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      // 7d. Fallback for any other unapproved status
+      return Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white,
+          title: Text(AppStrings.get('manage_stock', locale)),
+        ),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Stock management requires an approved pharmacy account.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textMedium),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 8. Approved Pharmacy: Full stock management scaffold
 
     return Scaffold(
       backgroundColor: AppColors.cream,

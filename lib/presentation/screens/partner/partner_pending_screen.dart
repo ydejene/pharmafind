@@ -16,8 +16,8 @@ import '../../bloc/settings/settings_cubit.dart';
 /// [PharmacyEntity.status] and surfaced by [PharmacyCubit].
 /// - If a persisted pharmacy record exists for the owner, this screen displays
 ///   its name and persisted status.
-/// - If no pharmacy record exists yet (e.g. because full pharmacy profile creation
-///   is completed in Stage 4), a clear status-preview notice is shown.
+/// - If no pharmacy record exists yet (e.g. before pharmacy profile registration),
+///   a clear status-preview notice is shown.
 /// - Tapping "Check Status" actively re-queries the pharmacy repository via
 ///   [PharmacyCubit.loadPharmacy].
 class PartnerPendingScreen extends StatelessWidget {
@@ -133,7 +133,7 @@ class PartnerPendingScreen extends StatelessWidget {
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Status Notice: No persisted pharmacy record exists yet for this account. Pharmacy profile registration is completed in Stage 4.',
+                          'Status Notice: No persisted pharmacy record exists yet for this account. Please complete your pharmacy profile registration to proceed with verification.',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textMedium,
@@ -160,13 +160,20 @@ class PartnerPendingScreen extends StatelessWidget {
                           .read<PharmacyCubit>()
                           .state
                           .pharmacy;
-                      if (updated?.status == 'approved') {
+                      if (updated == null) {
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerProfile);
+                      } else if (updated.submittedAt == null ||
+                          updated.licenseUrl == null ||
+                          updated.licenseUrl!.isEmpty ||
+                          updated.rmohCertUrl == null ||
+                          updated.rmohCertUrl!.isEmpty) {
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerLicense);
+                      } else if (updated.status == 'approved') {
                         Navigator.of(context)
                             .pushReplacementNamed(AuthRoutes.partnerDashboard);
-                      } else if (updated?.status == 'rejected') {
-                        Navigator.of(context)
-                            .pushReplacementNamed('/partner-rejected');
-                      } else if (updated?.status == 'pending') {
+                      } else if (updated.isResubmittedAwaitingReview) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
@@ -175,12 +182,16 @@ class PartnerPendingScreen extends StatelessWidget {
                             backgroundColor: AppColors.warningYellow,
                           ),
                         );
+                      } else if (updated.status == 'rejected') {
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerRejected);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'No persisted pharmacy found. Complete profile in Stage 4.',
+                              'Verification is still under review.',
                             ),
+                            backgroundColor: AppColors.warningYellow,
                           ),
                         );
                       }

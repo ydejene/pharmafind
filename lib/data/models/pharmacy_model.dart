@@ -17,6 +17,16 @@ class PharmacyModel extends Equatable {
   final bool acceptsInsurance;
   final DateTime createdAt;
 
+  // Verification metadata
+  final String? licenseUrl;
+  final String? licensePublicId;
+  final String? rmohCertUrl;
+  final String? rmohCertPublicId;
+  final DateTime? submittedAt;
+  final String? rejectionReason;
+  final DateTime? reviewedAt;
+  final String? reviewedBy;
+
   const PharmacyModel({
     required this.id,
     required this.name,
@@ -31,6 +41,14 @@ class PharmacyModel extends Equatable {
     this.status = 'pending',
     this.acceptsInsurance = true,
     required this.createdAt,
+    this.licenseUrl,
+    this.licensePublicId,
+    this.rmohCertUrl,
+    this.rmohCertPublicId,
+    this.submittedAt,
+    this.rejectionReason,
+    this.reviewedAt,
+    this.reviewedBy,
   });
 
   factory PharmacyModel.fromEntity(PharmacyEntity entity) {
@@ -48,6 +66,14 @@ class PharmacyModel extends Equatable {
       status: entity.status,
       acceptsInsurance: entity.acceptsInsurance,
       createdAt: entity.createdAt,
+      licenseUrl: entity.licenseUrl,
+      licensePublicId: entity.licensePublicId,
+      rmohCertUrl: entity.rmohCertUrl,
+      rmohCertPublicId: entity.rmohCertPublicId,
+      submittedAt: entity.submittedAt,
+      rejectionReason: entity.rejectionReason,
+      reviewedAt: entity.reviewedAt,
+      reviewedBy: entity.reviewedBy,
     );
   }
 
@@ -66,18 +92,21 @@ class PharmacyModel extends Equatable {
       status: status,
       acceptsInsurance: acceptsInsurance,
       createdAt: createdAt,
+      licenseUrl: licenseUrl,
+      licensePublicId: licensePublicId,
+      rmohCertUrl: rmohCertUrl,
+      rmohCertPublicId: rmohCertPublicId,
+      submittedAt: submittedAt,
+      rejectionReason: rejectionReason,
+      reviewedAt: reviewedAt,
+      reviewedBy: reviewedBy,
     );
   }
 
   factory PharmacyModel.fromMap(Map<String, dynamic> data, String id) {
-    final createdAtValue = data['createdAt'];
-    final createdAt = createdAtValue is DateTime
-        ? createdAtValue
-        : createdAtValue is String
-        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
-        : (createdAtValue != null
-              ? (createdAtValue as dynamic).toDate() as DateTime
-              : DateTime.now());
+    final createdAt = _parseDateTime(data['createdAt']) ?? DateTime.now();
+    final submittedAt = _parseDateTime(data['submittedAt']);
+    final reviewedAt = _parseDateTime(data['reviewedAt']);
 
     return PharmacyModel(
       id: id,
@@ -93,7 +122,26 @@ class PharmacyModel extends Equatable {
       status: data['status'] ?? 'pending',
       acceptsInsurance: data['acceptsInsurance'] ?? true,
       createdAt: createdAt,
+      licenseUrl: data['licenseUrl'] as String?,
+      licensePublicId: data['licensePublicId'] as String?,
+      rmohCertUrl: data['rmohCertUrl'] as String?,
+      rmohCertPublicId: data['rmohCertPublicId'] as String?,
+      submittedAt: submittedAt,
+      rejectionReason: data['rejectionReason'] as String?,
+      reviewedAt: reviewedAt,
+      reviewedBy: data['reviewedBy'] as String?,
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    try {
+      return (value as dynamic).toDate() as DateTime;
+    } catch (_) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toMap() {
@@ -110,10 +158,19 @@ class PharmacyModel extends Equatable {
       'status': status,
       'acceptsInsurance': acceptsInsurance,
       'createdAt': createdAt,
+      if (licenseUrl != null) 'licenseUrl': licenseUrl,
+      if (licensePublicId != null) 'licensePublicId': licensePublicId,
+      if (rmohCertUrl != null) 'rmohCertUrl': rmohCertUrl,
+      if (rmohCertPublicId != null) 'rmohCertPublicId': rmohCertPublicId,
+      if (submittedAt != null) 'submittedAt': submittedAt,
+      if (rejectionReason != null) 'rejectionReason': rejectionReason,
+      if (reviewedAt != null) 'reviewedAt': reviewedAt,
+      if (reviewedBy != null) 'reviewedBy': reviewedBy,
     };
   }
 
   PharmacyModel copyWith({
+    String? id,
     String? name,
     String? area,
     String? district,
@@ -122,11 +179,24 @@ class PharmacyModel extends Equatable {
     String? hours,
     double? latitude,
     double? longitude,
+    String? ownerId,
     String? status,
     bool? acceptsInsurance,
+    DateTime? createdAt,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+    DateTime? submittedAt,
+    String? rejectionReason,
+    bool clearRejectionReason = false,
+    DateTime? reviewedAt,
+    bool clearReviewedAt = false,
+    String? reviewedBy,
+    bool clearReviewedBy = false,
   }) {
     return PharmacyModel(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
       area: area ?? this.area,
       district: district ?? this.district,
@@ -135,10 +205,19 @@ class PharmacyModel extends Equatable {
       hours: hours ?? this.hours,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      ownerId: ownerId,
+      ownerId: ownerId ?? this.ownerId,
       status: status ?? this.status,
       acceptsInsurance: acceptsInsurance ?? this.acceptsInsurance,
-      createdAt: createdAt,
+      createdAt: createdAt ?? this.createdAt,
+      licenseUrl: licenseUrl ?? this.licenseUrl,
+      licensePublicId: licensePublicId ?? this.licensePublicId,
+      rmohCertUrl: rmohCertUrl ?? this.rmohCertUrl,
+      rmohCertPublicId: rmohCertPublicId ?? this.rmohCertPublicId,
+      submittedAt: submittedAt ?? this.submittedAt,
+      rejectionReason:
+          clearRejectionReason ? null : (rejectionReason ?? this.rejectionReason),
+      reviewedAt: clearReviewedAt ? null : (reviewedAt ?? this.reviewedAt),
+      reviewedBy: clearReviewedBy ? null : (reviewedBy ?? this.reviewedBy),
     );
   }
 
@@ -197,5 +276,20 @@ class PharmacyModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, area, district, ownerId, status];
+  List<Object?> get props => [
+    id,
+    name,
+    area,
+    district,
+    ownerId,
+    status,
+    licenseUrl,
+    licensePublicId,
+    rmohCertUrl,
+    rmohCertPublicId,
+    submittedAt,
+    rejectionReason,
+    reviewedAt,
+    reviewedBy,
+  ];
 }

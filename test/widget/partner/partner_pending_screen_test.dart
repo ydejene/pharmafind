@@ -58,7 +58,10 @@ Future<void> pumpPendingScreen(
         home: const PartnerPendingScreen(),
         routes: {
           '/home': (_) => const Scaffold(key: Key('home')),
+          '/partner-profile': (_) => const Scaffold(key: Key('profile')),
+          '/partner-license': (_) => const Scaffold(key: Key('license')),
           '/partner-rejected': (_) => const Scaffold(key: Key('rejected')),
+          '/partner-dashboard': (_) => const Scaffold(key: Key('dashboard')),
           ...routes,
         },
       ),
@@ -135,7 +138,7 @@ void main() {
       },
     );
 
-    testWidgets('check status queries PharmacyCubit for authenticated user', (
+    testWidgets('check status navigates to profile if no pharmacy exists', (
       tester,
     ) async {
       final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
@@ -162,11 +165,110 @@ void main() {
       await tester.tap(find.text(_en('check_status')));
       await tester.pumpAndSettle();
 
-      // Displays snackbar indicating no pharmacy found in Stage 3
-      expect(
-        find.textContaining('No persisted pharmacy found'),
-        findsOneWidget,
+      expect(find.byKey(const Key('profile')), findsOneWidget);
+    });
+
+    testWidgets('check status shows review snackbar when still pending (no bypass)', (
+      tester,
+    ) async {
+      final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+      await mockDataSource.createPharmacy(
+        PharmacyModel(
+          id: 'pharm-123',
+          name: 'Pending Pharmacy',
+          area: 'Remera',
+          district: 'Gasabo',
+          phone: '+250788111222',
+          email: 'test@pharm.rw',
+          hours: '8:00 AM - 10:00 PM',
+          latitude: -1.94,
+          longitude: 30.06,
+          ownerId: 'owner-123',
+          status: 'pending',
+          createdAt: DateTime(2026, 1, 1),
+          submittedAt: DateTime(2026, 1, 2),
+          licenseUrl: 'https://res.cloudinary.com/demo/raw/upload/lic.pdf',
+          licensePublicId: 'lic_pub',
+          rmohCertUrl: 'https://res.cloudinary.com/demo/raw/upload/rmoh.pdf',
+          rmohCertPublicId: 'rmoh_pub',
+        ),
       );
+      final repo = PharmacyRepositoryImpl(datasource: mockDataSource);
+      final cubit = PharmacyCubit(
+        getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(repo),
+        getPharmacyStockUseCase: GetPharmacyStockUseCase(repo),
+        createPharmacyUseCase: CreatePharmacyUseCase(repo),
+        updatePharmacyUseCase: UpdatePharmacyUseCase(repo),
+        addStockItemUseCase: AddStockItemUseCase(repo),
+        updateStockItemUseCase: UpdateStockItemUseCase(repo),
+        deleteStockItemUseCase: DeleteStockItemUseCase(repo),
+        watchPharmacyStockUseCase: WatchPharmacyStockUseCase(repo),
+      );
+
+      final authSource = _AuthedPartnerDataSource(userId: 'owner-123');
+
+      await pumpPendingScreen(
+        tester,
+        pharmacyCubit: cubit,
+        authDataSource: authSource,
+      );
+
+      await tester.tap(find.text(_en('check_status')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Verification is still under review.'), findsOneWidget);
+      expect(find.byKey(const Key('dashboard')), findsNothing);
+    });
+
+    testWidgets('check status navigates to dashboard when approved', (
+      tester,
+    ) async {
+      final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+      await mockDataSource.createPharmacy(
+        PharmacyModel(
+          id: 'pharm-123',
+          name: 'Approved Pharmacy',
+          area: 'Remera',
+          district: 'Gasabo',
+          phone: '+250788111222',
+          email: 'test@pharm.rw',
+          hours: '8:00 AM - 10:00 PM',
+          latitude: -1.94,
+          longitude: 30.06,
+          ownerId: 'owner-123',
+          status: 'approved',
+          createdAt: DateTime(2026, 1, 1),
+          submittedAt: DateTime(2026, 1, 2),
+          licenseUrl: 'https://res.cloudinary.com/demo/raw/upload/lic.pdf',
+          licensePublicId: 'lic_pub',
+          rmohCertUrl: 'https://res.cloudinary.com/demo/raw/upload/rmoh.pdf',
+          rmohCertPublicId: 'rmoh_pub',
+        ),
+      );
+      final repo = PharmacyRepositoryImpl(datasource: mockDataSource);
+      final cubit = PharmacyCubit(
+        getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(repo),
+        getPharmacyStockUseCase: GetPharmacyStockUseCase(repo),
+        createPharmacyUseCase: CreatePharmacyUseCase(repo),
+        updatePharmacyUseCase: UpdatePharmacyUseCase(repo),
+        addStockItemUseCase: AddStockItemUseCase(repo),
+        updateStockItemUseCase: UpdateStockItemUseCase(repo),
+        deleteStockItemUseCase: DeleteStockItemUseCase(repo),
+        watchPharmacyStockUseCase: WatchPharmacyStockUseCase(repo),
+      );
+
+      final authSource = _AuthedPartnerDataSource(userId: 'owner-123');
+
+      await pumpPendingScreen(
+        tester,
+        pharmacyCubit: cubit,
+        authDataSource: authSource,
+      );
+
+      await tester.tap(find.text(_en('check_status')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dashboard')), findsOneWidget);
     });
 
     testWidgets('browse app navigates to /home', (tester) async {

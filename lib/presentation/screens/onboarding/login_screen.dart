@@ -10,6 +10,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../utils/auth_navigation.dart';
 import '../../utils/auth_snackbar.dart';
+import '../../utils/partner_navigation.dart';
 import '../../widgets/auth_header.dart';
 import '../../widgets/auth_submit_button.dart';
 import '../../widgets/auth_text_field.dart';
@@ -26,6 +27,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        if (authState.user.isPartner) {
+          PartnerNavigation.routePartner(
+            context,
+            authState.user.uid,
+            replace: true,
+          );
+        } else {
+          AuthNavigation.toHome(context);
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -59,7 +80,15 @@ class _LoginScreenState extends State<LoginScreen> {
       listenWhen: (_, _) => ModalRoute.isCurrentOf(context) ?? false,
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          AuthNavigation.toHome(context);
+          if (state.user.isPartner) {
+            PartnerNavigation.routePartner(
+              context,
+              state.user.uid,
+              replace: true,
+            );
+          } else {
+            AuthNavigation.toHome(context);
+          }
         } else if (state is AuthError) {
           AuthSnackbar.showError(context, state.message);
         }
