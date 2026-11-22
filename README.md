@@ -33,7 +33,13 @@ PharmaFind provides two distinct, role-based workflows:
 
 ---
 
-## Technology Stack
+[![Flutter](https://img.shields.io/badge/Flutter-3.29.0-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.7.0-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![State Management](https://img.shields.io/badge/State%20Management-BLoC%20%2F%20Cubit-blueviolet)](https://bloclibrary.dev)
+[![Tests](https://img.shields.io/badge/Tests-188%20Passed%20(100%25)-success)](https://github.com/ydejene/pharmafind)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Web%20%7C%20macOS-lightgrey)](#platform-support)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-brightgreen)](#architectural-blueprint)
 
 - **Framework:** Flutter
 - **Language:** Dart (SDK `^3.13.4`)
