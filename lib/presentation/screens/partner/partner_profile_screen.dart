@@ -11,7 +11,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-/// Screen for creating and editing a partner's pharmacy profile (Stage 4).
+/// Screen for creating and editing a partner's pharmacy profile.
 ///
 /// **Domain & Ownership:**
 /// - Uses the authenticated partner's UID (`authState.user.uid`) as `ownerId`.
@@ -19,7 +19,7 @@ import '../../bloc/settings/settings_cubit.dart';
 /// - New profiles are created with `status: 'pending'` via [PharmacyCubit.createPharmacy].
 /// - Existing profiles are updated via [PharmacyCubit.updatePharmacy], strictly
 ///   preserving existing verification status, pharmacy ID, and creation timestamp.
-/// - Once initial profile creation completes, navigates to [AuthRoutes.partnerPending].
+/// - Once initial profile creation completes, navigates to [AuthRoutes.partnerLicense].
 class PartnerProfileScreen extends StatefulWidget {
   const PartnerProfileScreen({super.key});
 

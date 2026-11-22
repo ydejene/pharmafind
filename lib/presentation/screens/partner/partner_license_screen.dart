@@ -10,7 +10,7 @@ import '../../../core/constants/auth_routes.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-/// Pharmacy license / document submission screen (Stage 6-B).
+/// Pharmacy license / document submission screen.
 ///
 /// **Verification & Privacy:**
 /// - Real file selection using [FilePicker] supporting PDF, PNG, JPG/JPEG documents.

@@ -11,7 +11,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 
-/// Screen for managing pharmacy partner medicine stock (Stage 5).
+/// Screen for managing pharmacy partner medicine stock.
 ///
 /// **Architecture & Access Control:**
 /// - Uses pure domain entities ([StockItemEntity], [PharmacyEntity]).
@@ -19,7 +19,7 @@ import '../../bloc/settings/settings_cubit.dart';
 ///   [PharmacyCubit.addStockItem], [PharmacyCubit.updateStockItem],
 ///   [PharmacyCubit.deleteStockItem], and [PharmacyCubit.refreshStock].
 /// - Enforces role-based access: requires authenticated partner account.
-/// - Requires an existing pharmacy record associated with the authenticated partner.
+/// - Requires an approved pharmacy record associated with the authenticated partner.
 /// - Synchronizes with real-time stock stream and supports pull-to-refresh.
 /// - Validates required fields, price (> 0), and quantity (>= 0).
 /// - Enforces explicit deletion confirmation.

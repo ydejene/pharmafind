@@ -12,7 +12,7 @@ import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../widgets/pharmafind_logo.dart';
 
-/// Partner dashboard screen (Stage 4).
+/// Partner dashboard screen.
 ///
 /// **Access Control & State Management:**
 /// - Verifies that the authenticated user possesses the partner role (`user.isPartner`).
