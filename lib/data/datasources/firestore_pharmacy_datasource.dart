@@ -33,6 +33,25 @@ class FirestorePharmacyDataSource implements IPharmacyDataSource {
   }
 
   @override
+  Future<void> updateVerificationDocuments({
+    required String pharmacyId,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+  }) async {
+    final updates = <String, dynamic>{
+      'submittedAt': FieldValue.serverTimestamp(),
+    };
+    if (licenseUrl != null) updates['licenseUrl'] = licenseUrl;
+    if (licensePublicId != null) updates['licensePublicId'] = licensePublicId;
+    if (rmohCertUrl != null) updates['rmohCertUrl'] = rmohCertUrl;
+    if (rmohCertPublicId != null) updates['rmohCertPublicId'] = rmohCertPublicId;
+
+    await _pharmacies.doc(pharmacyId).set(updates, SetOptions(merge: true));
+  }
+
+  @override
   Future<void> deletePharmacy(String pharmacyId) async {
     final stockSnapshot = await _stock
         .where('pharmacyId', isEqualTo: pharmacyId)

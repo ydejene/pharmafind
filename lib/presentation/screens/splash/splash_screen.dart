@@ -4,7 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/auth_routes.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/auth_navigation.dart';
+import '../../utils/partner_navigation.dart';
 import '../../widgets/pharmafind_logo.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -40,15 +44,49 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      final settings = context.read<SettingsCubit>().state;
-      if (settings.hasSeenOnboarding) {
-        Navigator.of(context).pushReplacementNamed(AuthRoutes.login);
-      } else {
-        Navigator.of(context).pushReplacementNamed('/language');
+    _startStartupFlow();
+  }
+
+  Future<void> _startStartupFlow() async {
+    // Wait for the splash animation
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final settings = context.read<SettingsCubit>().state;
+    if (!settings.hasSeenOnboarding) {
+      Navigator.of(context).pushReplacementNamed(AuthRoutes.language);
+      return;
+    }
+
+    final authBloc = context.read<AuthBloc>();
+    var authState = authBloc.state;
+
+    // Wait until authentication restoration has reached a definitive state
+    if (authState is AuthInitial || authState is AuthLoading) {
+      try {
+        authState = await authBloc.stream
+            .firstWhere((s) => s is! AuthInitial && s is! AuthLoading)
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {
+        authState = authBloc.state;
       }
-    });
+    }
+
+    if (!mounted) return;
+
+    if (authState is AuthAuthenticated) {
+      if (authState.user.isPartner) {
+        await PartnerNavigation.routePartner(
+          context,
+          authState.user.uid,
+          replace: true,
+        );
+      } else {
+        AuthNavigation.toHome(context);
+      }
+    } else {
+      Navigator.of(context).pushReplacementNamed(AuthRoutes.login);
+    }
   }
 
   @override

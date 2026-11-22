@@ -15,6 +15,16 @@ class PharmacyEntity extends Equatable {
   final bool acceptsInsurance;
   final DateTime createdAt;
 
+  // Verification metadata
+  final String? licenseUrl;
+  final String? licensePublicId;
+  final String? rmohCertUrl;
+  final String? rmohCertPublicId;
+  final DateTime? submittedAt;
+  final String? rejectionReason;
+  final DateTime? reviewedAt;
+  final String? reviewedBy;
+
   const PharmacyEntity({
     required this.id,
     required this.name,
@@ -29,9 +39,88 @@ class PharmacyEntity extends Equatable {
     this.status = 'approved',
     this.acceptsInsurance = true,
     required this.createdAt,
+    this.licenseUrl,
+    this.licensePublicId,
+    this.rmohCertUrl,
+    this.rmohCertPublicId,
+    this.submittedAt,
+    this.rejectionReason,
+    this.reviewedAt,
+    this.reviewedBy,
   });
 
   bool get isApproved => status == 'approved';
+  bool get isPending => status == 'pending';
+  bool get isRejected => status == 'rejected';
+  bool get hasSubmittedDocuments => submittedAt != null;
+
+  /// True if the pharmacy is in rejected status and has not resubmitted new documents yet.
+  bool get isRejectedWithoutResubmission =>
+      isRejected &&
+      (submittedAt == null ||
+          (reviewedAt != null && !submittedAt!.isAfter(reviewedAt!)));
+
+  /// True if the partner resubmitted documents after being rejected and is now awaiting review.
+  bool get isResubmittedAwaitingReview =>
+      isRejected &&
+      submittedAt != null &&
+      reviewedAt != null &&
+      submittedAt!.isAfter(reviewedAt!);
+
+  /// True if the pharmacy documents are awaiting review (either initial or resubmission).
+  bool get isAwaitingReview => isPending || isResubmittedAwaitingReview;
+
+  PharmacyEntity copyWith({
+    String? id,
+    String? name,
+    String? area,
+    String? district,
+    String? phone,
+    String? email,
+    String? hours,
+    double? latitude,
+    double? longitude,
+    String? ownerId,
+    String? status,
+    bool? acceptsInsurance,
+    DateTime? createdAt,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+    DateTime? submittedAt,
+    String? rejectionReason,
+    bool clearRejectionReason = false,
+    DateTime? reviewedAt,
+    bool clearReviewedAt = false,
+    String? reviewedBy,
+    bool clearReviewedBy = false,
+  }) {
+    return PharmacyEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      area: area ?? this.area,
+      district: district ?? this.district,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      hours: hours ?? this.hours,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      ownerId: ownerId ?? this.ownerId,
+      status: status ?? this.status,
+      acceptsInsurance: acceptsInsurance ?? this.acceptsInsurance,
+      createdAt: createdAt ?? this.createdAt,
+      licenseUrl: licenseUrl ?? this.licenseUrl,
+      licensePublicId: licensePublicId ?? this.licensePublicId,
+      rmohCertUrl: rmohCertUrl ?? this.rmohCertUrl,
+      rmohCertPublicId: rmohCertPublicId ?? this.rmohCertPublicId,
+      submittedAt: submittedAt ?? this.submittedAt,
+      rejectionReason:
+          clearRejectionReason ? null : (rejectionReason ?? this.rejectionReason),
+      reviewedAt: clearReviewedAt ? null : (reviewedAt ?? this.reviewedAt),
+      reviewedBy: clearReviewedBy ? null : (reviewedBy ?? this.reviewedBy),
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -48,5 +137,13 @@ class PharmacyEntity extends Equatable {
     status,
     acceptsInsurance,
     createdAt,
+    licenseUrl,
+    licensePublicId,
+    rmohCertUrl,
+    rmohCertPublicId,
+    submittedAt,
+    rejectionReason,
+    reviewedAt,
+    reviewedBy,
   ];
 }

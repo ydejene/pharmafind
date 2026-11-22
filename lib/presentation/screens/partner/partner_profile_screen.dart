@@ -42,6 +42,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
   bool _acceptsInsurance = true;
   bool _isEditing = false;
   bool _isSubmitting = false;
+  PharmacyEntity? _existingPharmacy;
   String? _existingId;
   String _existingStatus = 'pending';
   DateTime? _existingCreatedAt;
@@ -79,6 +80,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
   }
 
   void _populateFromEntity(PharmacyEntity pharmacy) {
+    _existingPharmacy = pharmacy;
     _isEditing = true;
     _existingId = pharmacy.id;
     _existingStatus = pharmacy.status;
@@ -128,22 +130,36 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
     setState(() => _isSubmitting = true);
 
     if (_isEditing) {
-      final updated = PharmacyEntity(
-        id: _existingId ?? '',
-        name: _nameController.text.trim(),
-        area: _areaController.text.trim(),
-        district: _districtController.text.trim(),
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        hours: _hoursController.text.trim(),
-        latitude: lat,
-        longitude: lng,
-        ownerId: authState.user.uid,
-        status: _existingStatus, // Preserve existing status
-        acceptsInsurance: _acceptsInsurance,
-        createdAt:
-            _existingCreatedAt ?? DateTime.now(), // Preserve creation timestamp
-      );
+      final existing = _existingPharmacy ?? context.read<PharmacyCubit>().state.pharmacy;
+      final updated = existing != null
+          ? existing.copyWith(
+              name: _nameController.text.trim(),
+              area: _areaController.text.trim(),
+              district: _districtController.text.trim(),
+              phone: _phoneController.text.trim(),
+              email: _emailController.text.trim(),
+              hours: _hoursController.text.trim(),
+              latitude: lat,
+              longitude: lng,
+              ownerId: authState.user.uid,
+              status: _existingStatus,
+              acceptsInsurance: _acceptsInsurance,
+            )
+          : PharmacyEntity(
+              id: _existingId ?? '',
+              name: _nameController.text.trim(),
+              area: _areaController.text.trim(),
+              district: _districtController.text.trim(),
+              phone: _phoneController.text.trim(),
+              email: _emailController.text.trim(),
+              hours: _hoursController.text.trim(),
+              latitude: lat,
+              longitude: lng,
+              ownerId: authState.user.uid,
+              status: _existingStatus,
+              acceptsInsurance: _acceptsInsurance,
+              createdAt: _existingCreatedAt ?? DateTime.now(),
+            );
       context.read<PharmacyCubit>().updatePharmacy(updated);
     } else {
       // Final duplicate prevention check against Cubit state
@@ -186,11 +202,14 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
     return BlocConsumer<PharmacyCubit, PharmacyState>(
       listener: (context, state) {
         if (state.status == PharmacyStatus.loaded) {
+          if (state.pharmacy != null && state.pharmacy!.id.isNotEmpty) {
+            _existingPharmacy = state.pharmacy;
+          }
           if (_isSubmitting) {
             _isSubmitting = false;
             if (!_isEditing) {
               Navigator.of(context)
-                  .pushReplacementNamed(AuthRoutes.partnerPending);
+                  .pushReplacementNamed(AuthRoutes.partnerLicense);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
