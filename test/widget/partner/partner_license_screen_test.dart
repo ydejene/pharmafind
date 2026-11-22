@@ -341,5 +341,149 @@ void main() {
       // Remained on license screen
       expect(find.byKey(const Key('pending')), findsNothing);
     });
+
+    testWidgets(
+      'displays existing documents on file and enables submit when only one replacement is selected',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+        await mockDataSource.createPharmacy(
+          PharmacyModel(
+            id: 'pharm-test-resub',
+            name: 'Resubmission Pharmacy',
+            area: 'Remera',
+            district: 'Gasabo',
+            phone: '+250788111222',
+            email: 'test@pharm.rw',
+            hours: '8:00 AM - 10:00 PM',
+            latitude: -1.94,
+            longitude: 30.06,
+            ownerId: 'owner-resub',
+            status: 'rejected',
+            rejectionReason: 'RMOH certificate blurry',
+            licenseUrl: 'https://res.cloudinary.com/test/raw/upload/valid_license.pdf',
+            licensePublicId: 'partner-verification/valid_license.pdf',
+            rmohCertUrl: 'https://res.cloudinary.com/test/raw/upload/blurry_rmoh.pdf',
+            rmohCertPublicId: 'partner-verification/blurry_rmoh.pdf',
+            submittedAt: DateTime(2026, 1, 1),
+            reviewedAt: DateTime(2026, 1, 2),
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        );
+
+        final cubit = _buildTestPharmacyCubit(mockDataSource);
+        await cubit.loadPharmacy('owner-resub');
+
+        mockPicker.onPickFile = () => _TestPlatformFile(
+              name: 'replacement_rmoh.pdf',
+              bytes: Uint8List.fromList([7, 8, 9]),
+            );
+
+        await pumpLicenseScreen(tester, pharmacyCubit: cubit);
+
+        // Both documents should indicate they are on file
+        expect(find.text('ON FILE'), findsNWidgets(2));
+        expect(find.textContaining('valid_license.pdf (Tap to replace)'), findsOneWidget);
+        expect(find.textContaining('blurry_rmoh.pdf (Tap to replace)'), findsOneWidget);
+
+        // Submit initially disabled before any replacement is selected
+        var submitBtn = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, _en('submit_review')),
+        );
+        expect(submitBtn.onPressed, isNull);
+
+        // Select replacement ONLY for RMOH certificate
+        await tester.tap(find.textContaining('blurry_rmoh.pdf (Tap to replace)'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('replacement_rmoh.pdf (Tap to replace)'), findsOneWidget);
+
+        // Submit button is now enabled (only 1 file replaced, license on file is kept)
+        submitBtn = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, _en('submit_review')),
+        );
+        expect(submitBtn.onPressed, isNotNull);
+
+        // Submit the replacement
+        await tester.tap(find.text(_en('submit_review')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
+
+        // Navigates to pending review
+        expect(find.byKey(const Key('pending')), findsOneWidget);
+
+        // Verify datasource: RMOH was replaced, license was preserved, reviewer fields protected
+        final persisted = await mockDataSource.getPharmacy('pharm-test-resub');
+        expect(persisted?.rmohCertUrl, contains('replacement_rmoh.pdf'));
+        expect(persisted?.licenseUrl, contains('valid_license.pdf'));
+        expect(persisted?.status, 'rejected'); // Not modified by client
+        expect(persisted?.rejectionReason, 'RMOH certificate blurry');
+        expect(persisted?.submittedAt, isNotNull);
+        expect(persisted?.submittedAt!.isAfter(persisted.reviewedAt!), isTrue);
+      },
+    );
+
+    testWidgets('allows retry after upload failure without losing selected file', (
+      tester,
+    ) async {
+      final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+      await mockDataSource.createPharmacy(
+        PharmacyModel(
+          id: 'pharm-test-retry',
+          name: 'Retry Pharmacy',
+          area: 'Remera',
+          district: 'Gasabo',
+          phone: '+250788111222',
+          email: 'test@pharm.rw',
+          hours: '8:00 AM - 10:00 PM',
+          latitude: -1.94,
+          longitude: 30.06,
+          ownerId: 'owner-retry',
+          status: 'rejected',
+          licenseUrl: 'https://res.cloudinary.com/test/raw/upload/license.pdf',
+          licensePublicId: 'partner-verification/license.pdf',
+          rmohCertUrl: 'https://res.cloudinary.com/test/raw/upload/rmoh.pdf',
+          rmohCertPublicId: 'partner-verification/rmoh.pdf',
+          submittedAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      );
+
+      final mockCloudinary = MockCloudinaryDataSource()
+        ..shouldThrow = true
+        ..errorMessage = 'Network connection failed';
+      final cubit = _buildTestPharmacyCubit(mockDataSource, mockCloudinary);
+      await cubit.loadPharmacy('owner-retry');
+
+      mockPicker.onPickFile = () => _TestPlatformFile(
+            name: 'replacement.pdf',
+            bytes: Uint8List.fromList([1, 2, 3]),
+          );
+
+      await pumpLicenseScreen(tester, pharmacyCubit: cubit);
+
+      // Select replacement RMOH
+      await tester.tap(find.textContaining('rmoh.pdf (Tap to replace)'));
+      await tester.pumpAndSettle();
+
+      // Submit fails
+      await tester.tap(find.text(_en('submit_review')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Network connection failed'), findsOneWidget);
+      // Selected file is STILL retained on screen!
+      expect(find.text('replacement.pdf (Tap to replace)'), findsOneWidget);
+
+      // Now fix network and retry without re-picking
+      mockCloudinary.shouldThrow = false;
+      await tester.tap(find.text(_en('submit_review')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('pending')), findsOneWidget);
+    });
   });
 }

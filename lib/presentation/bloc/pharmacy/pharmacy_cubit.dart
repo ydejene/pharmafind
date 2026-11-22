@@ -291,10 +291,10 @@ class PharmacyCubit extends Cubit<PharmacyState> {
 
   Future<void> submitDocuments({
     required String pharmacyId,
-    required Uint8List licenseBytes,
-    required String licenseFilename,
-    required Uint8List rmohBytes,
-    required String rmohFilename,
+    Uint8List? licenseBytes,
+    String? licenseFilename,
+    Uint8List? rmohBytes,
+    String? rmohFilename,
   }) async {
     if (submitVerificationDocumentsUseCase == null) {
       throw StateError(

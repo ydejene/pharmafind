@@ -173,6 +173,15 @@ class PartnerPendingScreen extends StatelessWidget {
                       } else if (updated.status == 'approved') {
                         Navigator.of(context)
                             .pushReplacementNamed(AuthRoutes.partnerDashboard);
+                      } else if (updated.isResubmittedAwaitingReview) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Verification is still under review.',
+                            ),
+                            backgroundColor: AppColors.warningYellow,
+                          ),
+                        );
                       } else if (updated.status == 'rejected') {
                         Navigator.of(context)
                             .pushReplacementNamed(AuthRoutes.partnerRejected);

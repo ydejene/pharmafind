@@ -87,7 +87,55 @@ class PartnerRejectedScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              // Rejection Reason Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.errorRed.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 18,
+                          color: AppColors.errorRed,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Reason for Rejection',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.errorRed,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      (pharmacy?.rejectionReason != null &&
+                              pharmacy!.rejectionReason!.trim().isNotEmpty)
+                          ? pharmacy.rejectionReason!
+                          : 'No specific reason was provided. Please verify that all submitted documents are clear, valid, and unexpired before resubmitting.',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textDark,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               // Checklist of what to check
               Container(
                 padding: const EdgeInsets.all(16),
@@ -120,28 +168,28 @@ class PartnerRejectedScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // Honest notice about document re-evaluation limitations
+              // Explanation about document resubmission
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.warningYellow.withValues(alpha: 0.12),
+                  color: AppColors.accentOrange.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.warningYellow.withValues(alpha: 0.35),
+                    color: AppColors.accentOrange.withValues(alpha: 0.25),
                   ),
                 ),
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      Icons.refresh_rounded,
                       size: 20,
-                      color: AppColors.warningYellow,
+                      color: AppColors.accentOrange,
                     ),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Document re-evaluation: Automated document resubmission is currently unavailable. Please verify and update your pharmacy details or contact support for manual review.',
+                        'You can correct your documents and resubmit them for review. You may replace either your license, RMOH certificate, or both. Your existing pharmacy profile details are preserved.',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textMedium,
@@ -153,11 +201,24 @@ class PartnerRejectedScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              // Accurate primary action: Update pharmacy details
+              // Primary action: Resubmit documents
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(AuthRoutes.partnerLicense);
+                  },
+                  icon: const Icon(Icons.upload_file),
+                  label: Text(AppStrings.get('resubmit', locale)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Secondary action: Update pharmacy details
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
                   onPressed: () {
                     Navigator.of(context).pushNamed(AuthRoutes.partnerProfile);
                   },
@@ -166,7 +227,7 @@ class PartnerRejectedScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Secondary action: Return to ordinary home screen (no dashboard bypass)
+              // Tertiary action: Return to ordinary home screen (no dashboard bypass)
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushNamedAndRemoveUntil(

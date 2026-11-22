@@ -96,10 +96,10 @@ class _FakePharmacyRepository implements IPharmacyRepository {
   @override
   Future<PharmacyEntity> submitVerificationDocuments({
     required String pharmacyId,
-    required Uint8List licenseBytes,
-    required String licenseFilename,
-    required Uint8List rmohBytes,
-    required String rmohFilename,
+    Uint8List? licenseBytes,
+    String? licenseFilename,
+    Uint8List? rmohBytes,
+    String? rmohFilename,
   }) async {
     lastSubmittedPharmacyId = pharmacyId;
     lastSubmittedLicenseBytes = licenseBytes;

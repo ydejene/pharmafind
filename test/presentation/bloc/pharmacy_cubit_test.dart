@@ -114,10 +114,10 @@ class _MockPharmacyRepository implements IPharmacyRepository {
   @override
   Future<PharmacyEntity> submitVerificationDocuments({
     required String pharmacyId,
-    required Uint8List licenseBytes,
-    required String licenseFilename,
-    required Uint8List rmohBytes,
-    required String rmohFilename,
+    Uint8List? licenseBytes,
+    String? licenseFilename,
+    Uint8List? rmohBytes,
+    String? rmohFilename,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 10));
     if (submitDocumentsError != null) throw submitDocumentsError!;

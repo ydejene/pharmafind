@@ -198,5 +198,234 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test('submitVerificationDocuments replaces only license and preserves RMOH', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      // Pre-seed pharmacy with existing documents and rejection metadata
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: 'https://res.cloudinary.com/test/old_license.pdf',
+          licensePublicId: 'old_license_id',
+          rmohCertUrl: 'https://res.cloudinary.com/test/old_rmoh.pdf',
+          rmohCertPublicId: 'old_rmoh_id',
+          status: 'rejected',
+          rejectionReason: 'Blurry license document',
+          reviewedAt: DateTime(2026, 1, 10),
+          reviewedBy: 'reviewer-jeferson',
+        ),
+      );
+
+      final updated = await customRepo.submitVerificationDocuments(
+        pharmacyId: 'pharm-1',
+        licenseBytes: Uint8List.fromList([10, 20]),
+        licenseFilename: 'clean_license.pdf',
+      );
+
+      expect(updated.licenseUrl, contains('clean_license.pdf'));
+      expect(updated.licensePublicId, contains('clean_license.pdf'));
+      // RMOH preserved
+      expect(updated.rmohCertUrl, 'https://res.cloudinary.com/test/old_rmoh.pdf');
+      expect(updated.rmohCertPublicId, 'old_rmoh_id');
+      // Reviewer fields preserved
+      expect(updated.status, 'rejected');
+      expect(updated.rejectionReason, 'Blurry license document');
+      expect(updated.reviewedAt, DateTime(2026, 1, 10));
+      expect(updated.reviewedBy, 'reviewer-jeferson');
+      // Submitted at updated to after review
+      expect(updated.submittedAt, isNotNull);
+      expect(updated.submittedAt!.isAfter(updated.reviewedAt!), isTrue);
+      expect(updated.isResubmittedAwaitingReview, isTrue);
+    });
+
+    test('submitVerificationDocuments replaces only RMOH and preserves license', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: 'https://res.cloudinary.com/test/valid_license.pdf',
+          licensePublicId: 'valid_license_id',
+          rmohCertUrl: 'https://res.cloudinary.com/test/expired_rmoh.pdf',
+          rmohCertPublicId: 'expired_rmoh_id',
+          status: 'rejected',
+          rejectionReason: 'RMOH certificate expired',
+          reviewedAt: DateTime(2026, 1, 10),
+          reviewedBy: 'reviewer-jeferson',
+        ),
+      );
+
+      final updated = await customRepo.submitVerificationDocuments(
+        pharmacyId: 'pharm-1',
+        rmohBytes: Uint8List.fromList([30, 40]),
+        rmohFilename: 'renewed_rmoh.pdf',
+      );
+
+      // License preserved
+      expect(updated.licenseUrl, 'https://res.cloudinary.com/test/valid_license.pdf');
+      expect(updated.licensePublicId, 'valid_license_id');
+      // RMOH updated
+      expect(updated.rmohCertUrl, contains('renewed_rmoh.pdf'));
+      expect(updated.rmohCertPublicId, contains('renewed_rmoh.pdf'));
+      // Reviewer fields protected
+      expect(updated.status, 'rejected');
+      expect(updated.rejectionReason, 'RMOH certificate expired');
+      expect(updated.isResubmittedAwaitingReview, isTrue);
+    });
+
+    test('submitVerificationDocuments throws ArgumentError on initial submission when only license is provided', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      // Reset pharm-1 so it has NO documents
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: null,
+          licensePublicId: null,
+          rmohCertUrl: null,
+          rmohCertPublicId: null,
+          submittedAt: null,
+        ),
+      );
+
+      await expectLater(
+        () => customRepo.submitVerificationDocuments(
+          pharmacyId: 'pharm-1',
+          licenseBytes: Uint8List.fromList([1, 2]),
+          licenseFilename: 'license.pdf',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+
+      // Verify no mutation occurred on datasource
+      final check = await dataSource.getPharmacy('pharm-1');
+      expect(check?.submittedAt, isNull);
+      expect(check?.licenseUrl, isNull);
+    });
+
+    test('submitVerificationDocuments throws ArgumentError on initial submission when only RMOH is provided', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: null,
+          licensePublicId: null,
+          rmohCertUrl: null,
+          rmohCertPublicId: null,
+          submittedAt: null,
+        ),
+      );
+
+      await expectLater(
+        () => customRepo.submitVerificationDocuments(
+          pharmacyId: 'pharm-1',
+          rmohBytes: Uint8List.fromList([3, 4]),
+          rmohFilename: 'rmoh.pdf',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+
+      final check = await dataSource.getPharmacy('pharm-1');
+      expect(check?.submittedAt, isNull);
+      expect(check?.rmohCertUrl, isNull);
+    });
+
+    test('persists server timestamp and reads it back mapped to PharmacyEntity', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      // Simulate past review decision
+      final reviewTime = DateTime.now().subtract(const Duration(minutes: 5));
+
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: 'https://res.cloudinary.com/test/valid_license.pdf',
+          licensePublicId: 'valid_license_id',
+          rmohCertUrl: 'https://res.cloudinary.com/test/expired_rmoh.pdf',
+          rmohCertPublicId: 'expired_rmoh_id',
+          status: 'rejected',
+          rejectionReason: 'RMOH certificate expired',
+          reviewedAt: reviewTime,
+          reviewedBy: 'reviewer-jeferson',
+        ),
+      );
+
+      final updated = await customRepo.submitVerificationDocuments(
+        pharmacyId: 'pharm-1',
+        rmohBytes: Uint8List.fromList([30, 40]),
+        rmohFilename: 'renewed_rmoh.pdf',
+      );
+
+      // submittedAt is read back from the datasource and is after reviewedAt
+      expect(updated.submittedAt, isNotNull);
+      expect(updated.submittedAt!.isAfter(updated.reviewedAt!), isTrue);
+      expect(updated.isResubmittedAwaitingReview, isTrue);
+
+      final persisted = await dataSource.getPharmacy('pharm-1');
+      expect(persisted?.submittedAt, updated.submittedAt);
+    });
+
+    test('submitVerificationDocuments throws ArgumentError when no files provided', () async {
+      expect(
+        () => repository.submitVerificationDocuments(
+          pharmacyId: 'pharm-1',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('upload failure does not mutate persisted pharmacy documents', () async {
+      final failingCloudinary = MockCloudinaryDataSource()..shouldThrow = true;
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: failingCloudinary,
+      );
+
+      final existing = await dataSource.getPharmacy('pharm-1');
+      await dataSource.updatePharmacy(
+        existing!.copyWith(
+          licenseUrl: 'https://res.cloudinary.com/test/original_license.pdf',
+          rmohCertUrl: 'https://res.cloudinary.com/test/original_rmoh.pdf',
+          status: 'rejected',
+          rejectionReason: 'Original rejection',
+        ),
+      );
+
+      await expectLater(
+        () => customRepo.submitVerificationDocuments(
+          pharmacyId: 'pharm-1',
+          licenseBytes: Uint8List.fromList([1, 2]),
+          licenseFilename: 'new_license.pdf',
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      final persisted = await dataSource.getPharmacy('pharm-1');
+      expect(persisted?.licenseUrl, 'https://res.cloudinary.com/test/original_license.pdf');
+      expect(persisted?.status, 'rejected');
+      expect(persisted?.rejectionReason, 'Original rejection');
+    });
   });
 }

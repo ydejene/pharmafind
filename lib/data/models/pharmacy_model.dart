@@ -189,8 +189,11 @@ class PharmacyModel extends Equatable {
     String? rmohCertPublicId,
     DateTime? submittedAt,
     String? rejectionReason,
+    bool clearRejectionReason = false,
     DateTime? reviewedAt,
+    bool clearReviewedAt = false,
     String? reviewedBy,
+    bool clearReviewedBy = false,
   }) {
     return PharmacyModel(
       id: id ?? this.id,
@@ -211,9 +214,10 @@ class PharmacyModel extends Equatable {
       rmohCertUrl: rmohCertUrl ?? this.rmohCertUrl,
       rmohCertPublicId: rmohCertPublicId ?? this.rmohCertPublicId,
       submittedAt: submittedAt ?? this.submittedAt,
-      rejectionReason: rejectionReason ?? this.rejectionReason,
-      reviewedAt: reviewedAt ?? this.reviewedAt,
-      reviewedBy: reviewedBy ?? this.reviewedBy,
+      rejectionReason:
+          clearRejectionReason ? null : (rejectionReason ?? this.rejectionReason),
+      reviewedAt: clearReviewedAt ? null : (reviewedAt ?? this.reviewedAt),
+      reviewedBy: clearReviewedBy ? null : (reviewedBy ?? this.reviewedBy),
     );
   }
 

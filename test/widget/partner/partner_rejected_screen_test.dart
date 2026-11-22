@@ -42,6 +42,8 @@ Future<void> pumpRejectedScreen(
           '/home': (_) => const Scaffold(key: Key('home_screen')),
           '/partner-profile': (_) =>
               const Scaffold(key: Key('partner_profile_screen')),
+          '/partner-license': (_) =>
+              const Scaffold(key: Key('partner_license_screen')),
           '/partner-dashboard': (_) =>
               const Scaffold(key: Key('partner_dashboard_screen')),
           ...routes,
@@ -55,27 +57,133 @@ Future<void> pumpRejectedScreen(
 void main() {
   group('PartnerRejectedScreen', () {
     testWidgets(
-      'renders action needed, rejection checklist, and honest notice',
+      'renders action needed, rejection checklist, and resubmission notice',
       (tester) async {
         await pumpRejectedScreen(tester);
 
         expect(find.text(_en('action_needed')), findsOneWidget);
         expect(find.text(_en('rejected_title')), findsOneWidget);
         expect(find.text(_en('rejected_desc')), findsOneWidget);
+        expect(find.text('Reason for Rejection'), findsOneWidget);
         expect(find.text(_en('what_to_check')), findsOneWidget);
         expect(find.text(_en('readable')), findsOneWidget);
         expect(find.text(_en('not_expired')), findsOneWidget);
         expect(find.text(_en('full_visible')), findsOneWidget);
+        expect(find.text(_en('resubmit')), findsOneWidget);
         expect(find.text(_en('edit_pharmacy_info')), findsOneWidget);
         expect(find.text(_en('return_home')), findsOneWidget);
         expect(find.text(_en('pharmacy_dashboard')), findsNothing);
 
         expect(
           find.textContaining(
-            'Automated document resubmission is currently unavailable',
+            'You can correct your documents and resubmit them for review',
           ),
           findsOneWidget,
         );
+      },
+    );
+
+    testWidgets(
+      'displays explicit rejection reason when provided on pharmacy entity',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+        await mockDataSource.createPharmacy(
+          PharmacyModel(
+            id: 'pharm-rej-1',
+            name: 'City Central Pharmacy',
+            area: 'Nyarugenge',
+            district: 'Nyarugenge',
+            phone: '+250788333444',
+            email: 'city@pharma.rw',
+            hours: '8:00 AM - 10:00 PM',
+            latitude: -1.95,
+            longitude: 30.05,
+            ownerId: 'owner-rej-1',
+            status: 'rejected',
+            rejectionReason: 'RMOH certificate expired on 2025-12-31',
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        );
+
+        final repo = PharmacyRepositoryImpl(datasource: mockDataSource);
+        final cubit = PharmacyCubit(
+          getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(repo),
+          getPharmacyStockUseCase: GetPharmacyStockUseCase(repo),
+          createPharmacyUseCase: CreatePharmacyUseCase(repo),
+          updatePharmacyUseCase: UpdatePharmacyUseCase(repo),
+          addStockItemUseCase: AddStockItemUseCase(repo),
+          updateStockItemUseCase: UpdateStockItemUseCase(repo),
+          deleteStockItemUseCase: DeleteStockItemUseCase(repo),
+          watchPharmacyStockUseCase: WatchPharmacyStockUseCase(repo),
+        );
+
+        await cubit.loadPharmacy('owner-rej-1');
+
+        await pumpRejectedScreen(tester, pharmacyCubit: cubit);
+
+        expect(find.text('City Central Pharmacy'), findsOneWidget);
+        expect(
+          find.text('RMOH certificate expired on 2025-12-31'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'displays graceful fallback when rejection reason is missing or empty',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+        await mockDataSource.createPharmacy(
+          PharmacyModel(
+            id: 'pharm-rej-2',
+            name: 'Remera Care Pharmacy',
+            area: 'Remera',
+            district: 'Gasabo',
+            phone: '+250788555666',
+            email: 'remera@pharma.rw',
+            hours: '8:00 AM - 10:00 PM',
+            latitude: -1.95,
+            longitude: 30.05,
+            ownerId: 'owner-rej-2',
+            status: 'rejected',
+            rejectionReason: null,
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        );
+
+        final repo = PharmacyRepositoryImpl(datasource: mockDataSource);
+        final cubit = PharmacyCubit(
+          getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(repo),
+          getPharmacyStockUseCase: GetPharmacyStockUseCase(repo),
+          createPharmacyUseCase: CreatePharmacyUseCase(repo),
+          updatePharmacyUseCase: UpdatePharmacyUseCase(repo),
+          addStockItemUseCase: AddStockItemUseCase(repo),
+          updateStockItemUseCase: UpdateStockItemUseCase(repo),
+          deleteStockItemUseCase: DeleteStockItemUseCase(repo),
+          watchPharmacyStockUseCase: WatchPharmacyStockUseCase(repo),
+        );
+
+        await cubit.loadPharmacy('owner-rej-2');
+
+        await pumpRejectedScreen(tester, pharmacyCubit: cubit);
+
+        expect(find.text('Remera Care Pharmacy'), findsOneWidget);
+        expect(
+          find.textContaining('No specific reason was provided'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'resubmit button navigates to /partner-license document correction flow',
+      (tester) async {
+        await pumpRejectedScreen(tester);
+
+        await tester.tap(find.text(_en('resubmit')));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('partner_license_screen')), findsOneWidget);
       },
     );
 

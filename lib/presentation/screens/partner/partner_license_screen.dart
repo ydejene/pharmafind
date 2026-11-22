@@ -89,8 +89,6 @@ class _PartnerLicenseScreenState extends State<PartnerLicenseScreen> {
   }
 
   void _handleSubmit() {
-    if (_licenseBytes == null || _rmohBytes == null || _isSubmitting) return;
-
     final pharmacy = context.read<PharmacyCubit>().state.pharmacy;
     if (pharmacy == null || pharmacy.id.isEmpty) {
       _showError(
@@ -99,22 +97,64 @@ class _PartnerLicenseScreenState extends State<PartnerLicenseScreen> {
       return;
     }
 
+    final hasExistingLicense =
+        pharmacy.licenseUrl != null && pharmacy.licenseUrl!.isNotEmpty;
+    final hasExistingRmoh =
+        pharmacy.rmohCertUrl != null && pharmacy.rmohCertUrl!.isNotEmpty;
+
+    final hasNewLicense = _licenseBytes != null;
+    final hasNewRmoh = _rmohBytes != null;
+
+    final hasAnyNewSelection = hasNewLicense || hasNewRmoh;
+    final hasLicenseSatisfied = hasNewLicense || hasExistingLicense;
+    final hasRmohSatisfied = hasNewRmoh || hasExistingRmoh;
+
+    if (!hasAnyNewSelection ||
+        !hasLicenseSatisfied ||
+        !hasRmohSatisfied ||
+        _isSubmitting) {
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     context.read<PharmacyCubit>().submitDocuments(
       pharmacyId: pharmacy.id,
-      licenseBytes: _licenseBytes!,
-      licenseFilename: _licenseFilename ?? 'license.pdf',
-      rmohBytes: _rmohBytes!,
-      rmohFilename: _rmohFilename ?? 'rmoh_cert.pdf',
+      licenseBytes: _licenseBytes,
+      licenseFilename: _licenseFilename,
+      rmohBytes: _rmohBytes,
+      rmohFilename: _rmohFilename,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = context.watch<SettingsCubit>().state.locale;
-    final canSubmit =
-        _licenseBytes != null && _rmohBytes != null && !_isSubmitting;
+    final pharmacyState = context.watch<PharmacyCubit>().state;
+    final pharmacy = pharmacyState.pharmacy;
+
+    final hasExistingLicense =
+        pharmacy?.licenseUrl != null && pharmacy!.licenseUrl!.isNotEmpty;
+    final hasExistingRmoh =
+        pharmacy?.rmohCertUrl != null && pharmacy!.rmohCertUrl!.isNotEmpty;
+
+    final hasNewLicense = _licenseBytes != null;
+    final hasNewRmoh = _rmohBytes != null;
+    final hasAnyNewSelection = hasNewLicense || hasNewRmoh;
+    final hasLicenseSatisfied = hasNewLicense || hasExistingLicense;
+    final hasRmohSatisfied = hasNewRmoh || hasExistingRmoh;
+
+    final canSubmit = hasAnyNewSelection &&
+        hasLicenseSatisfied &&
+        hasRmohSatisfied &&
+        !_isSubmitting;
+
+    final existingLicenseName = pharmacy?.licensePublicId != null
+        ? pharmacy!.licensePublicId!.split('/').last
+        : (hasExistingLicense ? 'License document on file' : null);
+    final existingRmohName = pharmacy?.rmohCertPublicId != null
+        ? pharmacy!.rmohCertPublicId!.split('/').last
+        : (hasExistingRmoh ? 'RMOH certificate on file' : null);
 
     return BlocConsumer<PharmacyCubit, PharmacyState>(
       listener: (context, state) {
@@ -250,6 +290,8 @@ class _PartnerLicenseScreenState extends State<PartnerLicenseScreen> {
                     title: AppStrings.get('pharmacy_license', locale),
                     description: AppStrings.get('upload_license', locale),
                     selectedFilename: _licenseFilename,
+                    hasExistingDocument: hasExistingLicense,
+                    existingDocumentName: existingLicenseName,
                     isUploading: _isSubmitting,
                     onTap: _pickLicense,
                   ),
@@ -258,6 +300,8 @@ class _PartnerLicenseScreenState extends State<PartnerLicenseScreen> {
                     title: AppStrings.get('rmoh_cert', locale),
                     description: AppStrings.get('upload_rmoh', locale),
                     selectedFilename: _rmohFilename,
+                    hasExistingDocument: hasExistingRmoh,
+                    existingDocumentName: existingRmohName,
                     isUploading: _isSubmitting,
                     onTap: _pickRmoh,
                   ),
@@ -326,6 +370,8 @@ class _UploadCard extends StatelessWidget {
   final String title;
   final String description;
   final String? selectedFilename;
+  final bool hasExistingDocument;
+  final String? existingDocumentName;
   final bool isUploading;
   final VoidCallback onTap;
 
@@ -333,6 +379,8 @@ class _UploadCard extends StatelessWidget {
     required this.title,
     required this.description,
     this.selectedFilename,
+    this.hasExistingDocument = false,
+    this.existingDocumentName,
     required this.isUploading,
     required this.onTap,
   });
@@ -341,17 +389,29 @@ class _UploadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = selected
+        ? '$selectedFilename (Tap to replace)'
+        : hasExistingDocument
+            ? (existingDocumentName != null && existingDocumentName!.isNotEmpty
+                ? '$existingDocumentName (Tap to replace)'
+                : 'Current document on file (Tap to replace)')
+            : description;
+
     return GestureDetector(
       onTap: isUploading ? null : onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? AppColors.stockGreen : Colors.white,
+          color: selected
+              ? AppColors.stockGreen
+              : (hasExistingDocument ? Colors.white : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
                 ? AppColors.successGreen.withValues(alpha: 0.3)
-                : AppColors.borderLight.withValues(alpha: 0.5),
+                : (hasExistingDocument
+                    ? AppColors.primaryGreen.withValues(alpha: 0.3)
+                    : AppColors.borderLight.withValues(alpha: 0.5)),
           ),
         ),
         child: Row(
@@ -361,12 +421,22 @@ class _UploadCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? AppColors.successGreen
-                    : AppColors.accentOrange.withValues(alpha: 0.1),
+                    : (hasExistingDocument
+                        ? AppColors.primaryGreen.withValues(alpha: 0.12)
+                        : AppColors.accentOrange.withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                selected ? Icons.check : Icons.upload_file,
-                color: selected ? Colors.white : AppColors.accentOrange,
+                selected
+                    ? Icons.check
+                    : (hasExistingDocument
+                        ? Icons.description_outlined
+                        : Icons.upload_file),
+                color: selected
+                    ? Colors.white
+                    : (hasExistingDocument
+                        ? AppColors.primaryGreen
+                        : AppColors.accentOrange),
                 size: 24,
               ),
             ),
@@ -375,20 +445,47 @@ class _UploadCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      if (hasExistingDocument && !selected)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'ON FILE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   Text(
-                    selected ? '$selectedFilename (Tap to replace)' : description,
+                    subtitle,
                     style: TextStyle(
                       fontSize: 12,
                       color: selected
                           ? AppColors.successGreen
-                          : AppColors.textLight,
+                          : (hasExistingDocument
+                              ? AppColors.textMedium
+                              : AppColors.textLight),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

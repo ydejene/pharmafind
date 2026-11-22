@@ -29,11 +29,14 @@ class PartnerNavigation {
         pharmacy.rmohCertUrl!.isEmpty) {
       return AuthRoutes.partnerLicense;
     }
-    if (pharmacy.status == 'rejected') {
-      return AuthRoutes.partnerRejected;
-    }
-    if (pharmacy.status == 'approved') {
+    if (pharmacy.isApproved) {
       return AuthRoutes.partnerDashboard;
+    }
+    if (pharmacy.isResubmittedAwaitingReview) {
+      return AuthRoutes.partnerPending;
+    }
+    if (pharmacy.isRejected) {
+      return AuthRoutes.partnerRejected;
     }
     return AuthRoutes.partnerPending;
   }

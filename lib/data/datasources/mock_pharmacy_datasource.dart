@@ -231,6 +231,33 @@ class MockPharmacyDataSource implements IPharmacyDataSource {
   }
 
   @override
+  Future<void> updateVerificationDocuments({
+    required String pharmacyId,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+  }) async {
+    final existing = _pharmacies[pharmacyId];
+    if (existing != null) {
+      final now = DateTime.now();
+      // Server timestamp emulation: in Firestore, the server assigns request.time,
+      // which is strictly after any previously stored review decision.
+      final serverTime = (existing.reviewedAt != null && !now.isAfter(existing.reviewedAt!))
+          ? existing.reviewedAt!.add(const Duration(seconds: 1))
+          : now;
+
+      _pharmacies[pharmacyId] = existing.copyWith(
+        licenseUrl: licenseUrl ?? existing.licenseUrl,
+        licensePublicId: licensePublicId ?? existing.licensePublicId,
+        rmohCertUrl: rmohCertUrl ?? existing.rmohCertUrl,
+        rmohCertPublicId: rmohCertPublicId ?? existing.rmohCertPublicId,
+        submittedAt: serverTime,
+      );
+    }
+  }
+
+  @override
   Future<void> deletePharmacy(String pharmacyId) async {
     _pharmacies.remove(pharmacyId);
     _stock.removeWhere((_, item) => item.pharmacyId == pharmacyId);

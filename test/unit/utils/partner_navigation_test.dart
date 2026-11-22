@@ -111,6 +111,30 @@ void main() {
       expect(destination, AuthRoutes.partnerRejected);
     });
 
+    test('returns partnerPending when pharmacy is rejected but partner has resubmitted documents', () {
+      final pharmacy = createTestPharmacy(
+        status: 'rejected',
+        rejectionReason: 'Blurry document',
+      ).copyWith(
+        reviewedAt: DateTime(2026, 1, 5),
+        submittedAt: DateTime(2026, 1, 6), // submitted after review
+      );
+      final destination = PartnerNavigation.getPartnerDestination(pharmacy);
+      expect(destination, AuthRoutes.partnerPending);
+    });
+
+    test('returns partnerRejected when reviewer rejected resubmitted documents', () {
+      final pharmacy = createTestPharmacy(
+        status: 'rejected',
+        rejectionReason: 'Still expired',
+      ).copyWith(
+        submittedAt: DateTime(2026, 1, 6),
+        reviewedAt: DateTime(2026, 1, 7), // reviewed after resubmission
+      );
+      final destination = PartnerNavigation.getPartnerDestination(pharmacy);
+      expect(destination, AuthRoutes.partnerRejected);
+    });
+
     test('returns partnerDashboard when status is approved', () {
       final pharmacy = createTestPharmacy(status: 'approved');
       final destination = PartnerNavigation.getPartnerDestination(pharmacy);

@@ -17,14 +17,14 @@ abstract class IPharmacyRepository {
   Future<List<StockItemEntity>> getPharmacyStock(String pharmacyId);
   Stream<List<StockItemEntity>> watchPharmacyStock(String pharmacyId);
 
-  /// Uploads licence and RMOH certificate documents to Cloudinary,
+  /// Uploads replacement licence and/or RMOH certificate documents to Cloudinary,
   /// updates the pharmacy record with URLs and submission timestamp,
   /// and returns the updated [PharmacyEntity].
   Future<PharmacyEntity> submitVerificationDocuments({
     required String pharmacyId,
-    required Uint8List licenseBytes,
-    required String licenseFilename,
-    required Uint8List rmohBytes,
-    required String rmohFilename,
+    Uint8List? licenseBytes,
+    String? licenseFilename,
+    Uint8List? rmohBytes,
+    String? rmohFilename,
   });
 }

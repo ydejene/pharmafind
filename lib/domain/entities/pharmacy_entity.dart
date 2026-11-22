@@ -54,6 +54,22 @@ class PharmacyEntity extends Equatable {
   bool get isRejected => status == 'rejected';
   bool get hasSubmittedDocuments => submittedAt != null;
 
+  /// True if the pharmacy is in rejected status and has not resubmitted new documents yet.
+  bool get isRejectedWithoutResubmission =>
+      isRejected &&
+      (submittedAt == null ||
+          (reviewedAt != null && !submittedAt!.isAfter(reviewedAt!)));
+
+  /// True if the partner resubmitted documents after being rejected and is now awaiting review.
+  bool get isResubmittedAwaitingReview =>
+      isRejected &&
+      submittedAt != null &&
+      reviewedAt != null &&
+      submittedAt!.isAfter(reviewedAt!);
+
+  /// True if the pharmacy documents are awaiting review (either initial or resubmission).
+  bool get isAwaitingReview => isPending || isResubmittedAwaitingReview;
+
   PharmacyEntity copyWith({
     String? id,
     String? name,
@@ -74,8 +90,11 @@ class PharmacyEntity extends Equatable {
     String? rmohCertPublicId,
     DateTime? submittedAt,
     String? rejectionReason,
+    bool clearRejectionReason = false,
     DateTime? reviewedAt,
+    bool clearReviewedAt = false,
     String? reviewedBy,
+    bool clearReviewedBy = false,
   }) {
     return PharmacyEntity(
       id: id ?? this.id,
@@ -96,9 +115,10 @@ class PharmacyEntity extends Equatable {
       rmohCertUrl: rmohCertUrl ?? this.rmohCertUrl,
       rmohCertPublicId: rmohCertPublicId ?? this.rmohCertPublicId,
       submittedAt: submittedAt ?? this.submittedAt,
-      rejectionReason: rejectionReason ?? this.rejectionReason,
-      reviewedAt: reviewedAt ?? this.reviewedAt,
-      reviewedBy: reviewedBy ?? this.reviewedBy,
+      rejectionReason:
+          clearRejectionReason ? null : (rejectionReason ?? this.rejectionReason),
+      reviewedAt: clearReviewedAt ? null : (reviewedAt ?? this.reviewedAt),
+      reviewedBy: clearReviewedBy ? null : (reviewedBy ?? this.reviewedBy),
     );
   }
 

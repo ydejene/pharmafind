@@ -10,10 +10,10 @@ class SubmitVerificationDocumentsUseCase {
 
   Future<PharmacyEntity> call({
     required String pharmacyId,
-    required Uint8List licenseBytes,
-    required String licenseFilename,
-    required Uint8List rmohBytes,
-    required String rmohFilename,
+    Uint8List? licenseBytes,
+    String? licenseFilename,
+    Uint8List? rmohBytes,
+    String? rmohFilename,
   }) {
     return repository.submitVerificationDocuments(
       pharmacyId: pharmacyId,
