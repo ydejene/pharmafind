@@ -15,6 +15,7 @@ import '../../bloc/settings/settings_cubit.dart';
 import '../../utils/auth_navigation.dart';
 import '../../utils/partner_navigation.dart';
 import '../../widgets/pharmafind_logo.dart';
+import '../../widgets/notification_bell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -97,24 +98,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ? const PharmaFindLogo(size: 28)
             : const PharmaFindLogoDark(size: 28),
         actions: [
+          const NotificationBell(),
           IconButton(
             onPressed: () => Navigator.of(context).pushNamed('/settings'),
             icon: const Icon(Icons.settings_outlined),
             tooltip: AppStrings.get('settings', locale),
           ),
+
           IconButton(
             onPressed: () => Navigator.of(context).pushNamed(AuthRoutes.profile),
             icon: const Icon(Icons.person_outline),
             tooltip: AppStrings.get('profile', locale),
           ),
-          IconButton(
-            onPressed: () => AuthNavigation.toLogin(context),
-            icon: Icon(isAuthenticated ? Icons.logout : Icons.login),
-            tooltip: AppStrings.get(
-              isAuthenticated ? 'logout' : 'sign_in',
-              locale,
-            ),
-          ),
+          // IconButton(
+          //   onPressed: () => AuthNavigation.toLogin(context),
+          //   icon: Icon(isAuthenticated ? Icons.logout : Icons.login),
+          //   tooltip: AppStrings.get(
+          //     isAuthenticated ? 'logout' : 'sign_in',
+          //     locale,
+          //   ),
+          // ),
         ],
       ),
       body: RefreshIndicator(
@@ -213,14 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           AppStrings.get('register_pharmacy', locale),
                         ),
                       ),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).pushNamed('/notify'),
-                      icon: const Icon(
-                        Icons.notifications_active_outlined,
-                        size: 18,
-                      ),
-                      label: Text(AppStrings.get('notify_me', locale)),
-                    ),
+
                     OutlinedButton.icon(
                       onPressed: () =>
                           Navigator.of(context).pushNamed('/settings'),

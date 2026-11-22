@@ -22,6 +22,7 @@ import 'presentation/screens/pharmacy/directions_screen.dart';
 import 'presentation/screens/pharmacy/pharmacy_detail_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/home/notifications_screen.dart';
 
 class PharmaFindApp extends StatelessWidget {
   const PharmaFindApp({super.key});
@@ -50,12 +51,14 @@ class PharmaFindApp extends StatelessWidget {
                 '/search-results' => const SearchResultsScreen(),
                 '/pharmacy-detail' => const PharmacyDetailScreen(),
                 '/directions' => const DirectionsScreen(),
+                '/notifications' => const NotificationsScreen(),
                 '/notify' => AvailabilityAlertScreen(
                   query: routeSettings.arguments as String?,
                 ),
                 '/settings' => const SettingsScreen(),
                 AuthRoutes.profile => const ProfileScreen(),
                 '/edit-profile' => const EditProfileScreen(),
+
                 AuthRoutes.partnerSignup => const PartnerSignupScreen(),
                 AuthRoutes.partnerLicense => const PartnerLicenseScreen(),
                 AuthRoutes.partnerPending => const PartnerPendingScreen(),
