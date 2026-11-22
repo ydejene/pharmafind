@@ -39,6 +39,7 @@ Future<void> pumpRejectedScreen(
       child: MaterialApp(
         home: const PartnerRejectedScreen(),
         routes: {
+          '/home': (_) => const Scaffold(key: Key('home_screen')),
           '/partner-profile': (_) =>
               const Scaffold(key: Key('partner_profile_screen')),
           '/partner-dashboard': (_) =>
@@ -66,7 +67,8 @@ void main() {
         expect(find.text(_en('not_expired')), findsOneWidget);
         expect(find.text(_en('full_visible')), findsOneWidget);
         expect(find.text(_en('edit_pharmacy_info')), findsOneWidget);
-        expect(find.text(_en('pharmacy_dashboard')), findsOneWidget);
+        expect(find.text(_en('return_home')), findsOneWidget);
+        expect(find.text(_en('pharmacy_dashboard')), findsNothing);
 
         expect(
           find.textContaining(
@@ -129,15 +131,16 @@ void main() {
       expect(find.byKey(const Key('partner_profile_screen')), findsOneWidget);
     });
 
-    testWidgets('dashboard button navigates to /partner-dashboard', (
+    testWidgets('secondary action navigates to /home and prevents dashboard bypass', (
       tester,
     ) async {
       await pumpRejectedScreen(tester);
 
-      await tester.tap(find.text(_en('pharmacy_dashboard')));
+      await tester.tap(find.text(_en('return_home')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('partner_dashboard_screen')), findsOneWidget);
+      expect(find.byKey(const Key('home_screen')), findsOneWidget);
+      expect(find.byKey(const Key('partner_dashboard_screen')), findsNothing);
     });
   });
 }

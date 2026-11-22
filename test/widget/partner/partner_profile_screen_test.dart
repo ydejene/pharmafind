@@ -73,7 +73,7 @@ Future<void> pumpProfileScreen(
       child: MaterialApp(
         home: const PartnerProfileScreen(),
         routes: {
-          '/partner-pending': (_) => const Scaffold(key: Key('pending_screen')),
+          '/partner-license': (_) => const Scaffold(key: Key('license_screen')),
           ...routes,
         },
       ),
@@ -153,8 +153,8 @@ void main() {
         await tester.tap(find.text(_en('save_profile')));
         await tester.pumpAndSettle();
 
-        // Successful creation navigates to /partner-pending
-        expect(find.byKey(const Key('pending_screen')), findsOneWidget);
+        // Successful creation navigates to /partner-license
+        expect(find.byKey(const Key('license_screen')), findsOneWidget);
 
         // Verify the persisted entity in repository has correct ownerId and pending status
         final createdPharmacy = await mockDataSource.getPharmacyByOwner(
@@ -174,7 +174,7 @@ void main() {
       'populates existing pharmacy and preserves verification status when editing',
       (tester) async {
         final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
-        // Pre-seed an approved pharmacy
+        // Pre-seed an approved pharmacy with full verification metadata
         await mockDataSource.createPharmacy(
           PharmacyModel(
             id: 'pharm-approved-1',
@@ -190,6 +190,14 @@ void main() {
             status: 'approved', // Must be preserved!
             acceptsInsurance: true,
             createdAt: DateTime(2026, 1, 1),
+            licenseUrl: 'https://res.cloudinary.com/demo/raw/upload/license.pdf',
+            licensePublicId: 'lic_pub_123',
+            rmohCertUrl: 'https://res.cloudinary.com/demo/raw/upload/rmoh.pdf',
+            rmohCertPublicId: 'rmoh_pub_123',
+            submittedAt: DateTime(2026, 1, 2),
+            rejectionReason: 'Previous comment',
+            reviewedAt: DateTime(2026, 1, 3),
+            reviewedBy: 'Admin Reviewer',
           ),
         );
 
@@ -233,6 +241,28 @@ void main() {
           updatedPharmacy.status,
           'approved',
         ); // Verification status NOT reset to pending!
+        // Verify all 8 verification metadata fields are preserved in database
+        expect(updatedPharmacy.licenseUrl, 'https://res.cloudinary.com/demo/raw/upload/license.pdf');
+        expect(updatedPharmacy.licensePublicId, 'lic_pub_123');
+        expect(updatedPharmacy.rmohCertUrl, 'https://res.cloudinary.com/demo/raw/upload/rmoh.pdf');
+        expect(updatedPharmacy.rmohCertPublicId, 'rmoh_pub_123');
+        expect(updatedPharmacy.submittedAt, DateTime(2026, 1, 2));
+        expect(updatedPharmacy.rejectionReason, 'Previous comment');
+        expect(updatedPharmacy.reviewedAt, DateTime(2026, 1, 3));
+        expect(updatedPharmacy.reviewedBy, 'Admin Reviewer');
+
+        // Verify all 8 verification metadata fields are preserved in-memory in cubit
+        final inMemoryPharmacy = cubit.state.pharmacy;
+        expect(inMemoryPharmacy, isNotNull);
+        expect(inMemoryPharmacy!.name, 'Updated Pharmacy Name');
+        expect(inMemoryPharmacy.licenseUrl, 'https://res.cloudinary.com/demo/raw/upload/license.pdf');
+        expect(inMemoryPharmacy.licensePublicId, 'lic_pub_123');
+        expect(inMemoryPharmacy.rmohCertUrl, 'https://res.cloudinary.com/demo/raw/upload/rmoh.pdf');
+        expect(inMemoryPharmacy.rmohCertPublicId, 'rmoh_pub_123');
+        expect(inMemoryPharmacy.submittedAt, DateTime(2026, 1, 2));
+        expect(inMemoryPharmacy.rejectionReason, 'Previous comment');
+        expect(inMemoryPharmacy.reviewedAt, DateTime(2026, 1, 3));
+        expect(inMemoryPharmacy.reviewedBy, 'Admin Reviewer');
       },
     );
 

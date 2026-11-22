@@ -160,27 +160,29 @@ class PartnerPendingScreen extends StatelessWidget {
                           .read<PharmacyCubit>()
                           .state
                           .pharmacy;
-                      if (updated?.status == 'approved') {
+                      if (updated == null) {
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerProfile);
+                      } else if (updated.submittedAt == null ||
+                          updated.licenseUrl == null ||
+                          updated.licenseUrl!.isEmpty ||
+                          updated.rmohCertUrl == null ||
+                          updated.rmohCertUrl!.isEmpty) {
+                        Navigator.of(context)
+                            .pushReplacementNamed(AuthRoutes.partnerLicense);
+                      } else if (updated.status == 'approved') {
                         Navigator.of(context)
                             .pushReplacementNamed(AuthRoutes.partnerDashboard);
-                      } else if (updated?.status == 'rejected') {
+                      } else if (updated.status == 'rejected') {
                         Navigator.of(context)
-                            .pushReplacementNamed('/partner-rejected');
-                      } else if (updated?.status == 'pending') {
+                            .pushReplacementNamed(AuthRoutes.partnerRejected);
+                      } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
                               'Verification is still under review.',
                             ),
                             backgroundColor: AppColors.warningYellow,
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'No persisted pharmacy found. Complete profile in Stage 4.',
-                            ),
                           ),
                         );
                       }

@@ -166,16 +166,16 @@ class PartnerRejectedScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Secondary action: Return to dashboard or home
+              // Secondary action: Return to ordinary home screen (no dashboard bypass)
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushNamedAndRemoveUntil(
-                    AuthRoutes.partnerDashboard,
+                    AuthRoutes.home,
                     (route) => false,
                   );
                 },
                 child: Text(
-                  AppStrings.get('pharmacy_dashboard', locale),
+                  AppStrings.get('return_home', locale),
                   style: const TextStyle(color: AppColors.primaryGreen),
                 ),
               ),

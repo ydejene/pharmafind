@@ -8,6 +8,7 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/settings/settings_cubit.dart';
+import '../../utils/partner_navigation.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -408,8 +409,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                               locale,
                             ),
                             onTap: () {
-                              Navigator.of(context)
-                                  .pushNamed(AuthRoutes.partnerDashboard);
+                              PartnerNavigation.routePartner(
+                                context,
+                                user.uid,
+                                replace: false,
+                              );
                             },
                           )
                         else

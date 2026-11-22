@@ -13,6 +13,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/search/search_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../utils/auth_navigation.dart';
+import '../../utils/partner_navigation.dart';
 import '../../widgets/pharmafind_logo.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -191,8 +192,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     if (isPartner)
                       OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(AuthRoutes.partnerDashboard),
+                        onPressed: () {
+                          PartnerNavigation.routePartner(
+                            context,
+                            authState.user.uid,
+                            replace: false,
+                          );
+                        },
                         icon: const Icon(Icons.dashboard_outlined, size: 18),
                         label: Text(
                           AppStrings.get('partner_dashboard', locale),

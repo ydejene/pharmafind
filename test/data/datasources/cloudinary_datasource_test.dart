@@ -48,7 +48,7 @@ void main() {
           request.url.toString(),
           contains('https://api.cloudinary.com/v1_1/'),
         );
-        expect(request.url.toString(), contains('/raw/upload'));
+        expect(request.url.toString(), contains('/auto/upload'));
 
         final responseJson = {
           'secure_url': 'https://res.cloudinary.com/test/raw/upload/v1/license.pdf',

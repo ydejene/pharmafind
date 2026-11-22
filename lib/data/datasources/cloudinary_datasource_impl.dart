@@ -17,7 +17,7 @@ class CloudinaryDataSourceImpl implements ICloudinaryDataSource {
     String filename,
   ) async {
     final uri = Uri.parse(
-      'https://api.cloudinary.com/v1_1/${AppConfig.cloudinaryCloudName}/raw/upload',
+      'https://api.cloudinary.com/v1_1/${AppConfig.cloudinaryCloudName}/auto/upload',
     );
 
     final request = http.MultipartRequest('POST', uri)
