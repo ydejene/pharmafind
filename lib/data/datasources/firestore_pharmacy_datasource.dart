@@ -115,14 +115,29 @@ class FirestorePharmacyDataSource implements IPharmacyDataSource {
 
   @override
   Future<String> addStockItem(StockItemModel item) async {
-    final reference = item.id.isEmpty ? _stock.doc() : _stock.doc(item.id);
+    final reference =
+    item.id.isEmpty ? _stock.doc() : _stock.doc(item.id);
+
     await reference.set(_stockData(item));
+
+    await _notifyMatchingUsers(
+      item: item,
+      stockId: reference.id,
+    );
+
     return reference.id;
   }
 
   @override
-  Future<void> updateStockItem(StockItemModel item) {
-    return _stock.doc(item.id).set(_stockData(item), SetOptions(merge: true));
+  Future<void> updateStockItem(StockItemModel item) async {
+    await _stock
+        .doc(item.id)
+        .set(_stockData(item), SetOptions(merge: true));
+
+    await _notifyMatchingUsers(
+      item: item,
+      stockId: item.id,
+    );
   }
 
   @override
@@ -162,5 +177,66 @@ class FirestorePharmacyDataSource implements IPharmacyDataSource {
       ...item.toMap(),
       'medicineNameLower': item.medicineName.trim().toLowerCase(),
     };
+  }
+  Future<void> _notifyMatchingUsers({
+    required StockItemModel item,
+    required String stockId,
+  }) async {
+    if (item.status == 'out_of_stock' || item.quantity <= 0) {
+      return;
+    }
+
+    final medicineName = item.medicineName.trim();
+    final normalizedMedicine = medicineName.toLowerCase();
+
+    final alertsSnapshot = await _firestore
+        .collection('alerts')
+        .where('medicineNameLower', isEqualTo: normalizedMedicine)
+        .where('isActive', isEqualTo: true)
+        .get();
+
+    for (final alert in alertsSnapshot.docs) {
+      final alertData = alert.data();
+      final userId = alertData['userId']?.toString() ?? '';
+      final alertArea =
+          alertData['searchArea']?.toString().toLowerCase() ?? '';
+      final pharmacyArea = item.pharmacyArea.trim().toLowerCase();
+
+      if (userId.isEmpty) {
+        continue;
+      }
+
+      final areaMatches =
+          alertArea.isEmpty ||
+              alertArea.contains(pharmacyArea) ||
+              pharmacyArea.contains(alertArea) ||
+              alertArea.contains('kigali');
+
+      if (!areaMatches) {
+        continue;
+      }
+
+      // using a fixed ID prevents duplicate notifications
+      final notificationId = '${alert.id}_$stockId';
+
+      await _firestore
+          .collection('notifications')
+          .doc(notificationId)
+          .set({
+        'userId': userId,
+        'alertId': alert.id,
+        'stockId': stockId,
+        'medicineName': medicineName,
+        'pharmacyId': item.pharmacyId,
+        'pharmacyName': item.pharmacyName,
+        'pharmacyArea': item.pharmacyArea,
+        'title': '$medicineName is now available',
+        'message':
+        '${item.pharmacyName} has $medicineName in stock in ${item.pharmacyArea}.',
+        'type': 'stock_available',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 }
