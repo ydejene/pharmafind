@@ -25,6 +25,8 @@ dependencies:
   latlong2: ^0.10.1
   url_launcher: ^6.3.3
   geolocator: ^14.1.2
+  file_picker: ^13.4.1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

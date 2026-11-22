@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pharmafind/data/datasources/auth_datasource.dart';
+import 'package:pharmafind/data/datasources/cloudinary_datasource.dart';
 import 'package:pharmafind/data/datasources/mock_auth_datasource.dart';
+import 'package:pharmafind/data/datasources/mock_cloudinary_datasource.dart';
 import 'package:pharmafind/data/datasources/mock_pharmacy_datasource.dart';
 import 'package:pharmafind/data/datasources/pharmacy_datasource.dart';
 import 'package:pharmafind/data/datasources/shared_preferences_settings_datasource.dart';
@@ -20,6 +22,7 @@ import 'package:pharmafind/domain/usecases/pharmacy/create_pharmacy_usecase.dart
 import 'package:pharmafind/domain/usecases/pharmacy/delete_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_by_owner_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
+import 'package:pharmafind/domain/usecases/pharmacy/submit_verification_documents_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
@@ -54,6 +57,7 @@ Widget withPartnerTestProviders({
   required Widget child,
   IAuthDataSource? authDataSource,
   IPharmacyDataSource? pharmacyDataSource,
+  ICloudinaryDataSource? cloudinaryDataSource,
   PharmacyCubit? pharmacyCubit,
 }) {
   final authRepository = AuthRepositoryImpl(
@@ -61,7 +65,11 @@ Widget withPartnerTestProviders({
   );
 
   final pDataSource = pharmacyDataSource ?? MockPharmacyDataSource();
-  final pharmacyRepository = PharmacyRepositoryImpl(datasource: pDataSource);
+  final cDataSource = cloudinaryDataSource ?? MockCloudinaryDataSource();
+  final pharmacyRepository = PharmacyRepositoryImpl(
+    datasource: pDataSource,
+    cloudinaryDatasource: cDataSource,
+  );
 
   final defaultPharmacyCubit = PharmacyCubit(
     getPharmacyByOwnerUseCase: GetPharmacyByOwnerUseCase(pharmacyRepository),
@@ -72,6 +80,8 @@ Widget withPartnerTestProviders({
     updateStockItemUseCase: UpdateStockItemUseCase(pharmacyRepository),
     deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
     watchPharmacyStockUseCase: WatchPharmacyStockUseCase(pharmacyRepository),
+    submitVerificationDocumentsUseCase:
+        SubmitVerificationDocumentsUseCase(pharmacyRepository),
   );
 
   return MultiBlocProvider(

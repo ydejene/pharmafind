@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'data/datasources/cloudinary_datasource_impl.dart';
 import 'data/datasources/firebase_auth_datasource.dart';
 import 'data/datasources/firestore_pharmacy_datasource.dart';
 import 'data/datasources/shared_preferences_settings_datasource.dart';
@@ -23,6 +24,7 @@ import 'domain/usecases/pharmacy/create_pharmacy_usecase.dart';
 import 'domain/usecases/pharmacy/delete_stock_item_usecase.dart';
 import 'domain/usecases/pharmacy/get_pharmacy_by_owner_usecase.dart';
 import 'domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
+import 'domain/usecases/pharmacy/submit_verification_documents_usecase.dart';
 import 'domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import 'domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
@@ -78,8 +80,10 @@ void main() async {
 
   final authDataSource = FirebaseAuthDataSource();
   final authRepository = AuthRepositoryImpl(datasource: authDataSource);
+  final cloudinaryDataSource = CloudinaryDataSourceImpl();
   final pharmacyRepository = PharmacyRepositoryImpl(
     datasource: FirestorePharmacyDataSource(),
+    cloudinaryDatasource: cloudinaryDataSource,
   );
 
   final alertRepository = AlertRepositoryImpl(
@@ -99,6 +103,8 @@ void main() async {
     updateStockItemUseCase: UpdateStockItemUseCase(pharmacyRepository),
     deleteStockItemUseCase: DeleteStockItemUseCase(pharmacyRepository),
     watchPharmacyStockUseCase: WatchPharmacyStockUseCase(pharmacyRepository),
+    submitVerificationDocumentsUseCase:
+        SubmitVerificationDocumentsUseCase(pharmacyRepository),
   );
   final searchCubit = SearchCubit(
     searchMedicineUseCase: SearchMedicineUseCase(pharmacyRepository),

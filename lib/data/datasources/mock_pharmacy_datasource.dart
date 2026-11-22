@@ -218,21 +218,9 @@ class MockPharmacyDataSource implements IPharmacyDataSource {
   @override
   Future<String> createPharmacy(PharmacyModel pharmacy) async {
     final id = pharmacy.id.isNotEmpty ? pharmacy.id : _nextId('pharm');
-    final created = PharmacyModel(
-      id: id,
-      name: pharmacy.name,
-      area: pharmacy.area,
-      district: pharmacy.district,
-      phone: pharmacy.phone,
-      email: pharmacy.email,
-      hours: pharmacy.hours,
-      latitude: pharmacy.latitude,
-      longitude: pharmacy.longitude,
-      ownerId: pharmacy.ownerId,
-      status: pharmacy.status,
-      acceptsInsurance: pharmacy.acceptsInsurance,
-      createdAt: pharmacy.createdAt,
-    );
+    final created = pharmacy.id.isNotEmpty
+        ? pharmacy
+        : pharmacy.copyWith(id: id);
     _pharmacies[id] = created;
     return id;
   }
@@ -240,6 +228,33 @@ class MockPharmacyDataSource implements IPharmacyDataSource {
   @override
   Future<void> updatePharmacy(PharmacyModel pharmacy) async {
     _pharmacies[pharmacy.id] = pharmacy;
+  }
+
+  @override
+  Future<void> updateVerificationDocuments({
+    required String pharmacyId,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+  }) async {
+    final existing = _pharmacies[pharmacyId];
+    if (existing != null) {
+      final now = DateTime.now();
+      // Server timestamp emulation: in Firestore, the server assigns request.time,
+      // which is strictly after any previously stored review decision.
+      final serverTime = (existing.reviewedAt != null && !now.isAfter(existing.reviewedAt!))
+          ? existing.reviewedAt!.add(const Duration(seconds: 1))
+          : now;
+
+      _pharmacies[pharmacyId] = existing.copyWith(
+        licenseUrl: licenseUrl ?? existing.licenseUrl,
+        licensePublicId: licensePublicId ?? existing.licensePublicId,
+        rmohCertUrl: rmohCertUrl ?? existing.rmohCertUrl,
+        rmohCertPublicId: rmohCertPublicId ?? existing.rmohCertPublicId,
+        submittedAt: serverTime,
+      );
+    }
   }
 
   @override

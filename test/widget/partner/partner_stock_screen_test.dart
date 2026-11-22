@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pharmafind/core/constants/app_strings.dart';
@@ -56,6 +58,14 @@ class _FailingPharmacyDataSource extends MockPharmacyDataSource {
   }
 }
 
+class _DelayedPharmacyDataSource extends MockPharmacyDataSource {
+  final Future<PharmacyModel?> pendingFuture;
+  _DelayedPharmacyDataSource(this.pendingFuture) : super(seedInitialData: false);
+
+  @override
+  Future<PharmacyModel?> getPharmacyByOwner(String ownerId) => pendingFuture;
+}
+
 PharmacyCubit _buildTestCubit(MockPharmacyDataSource dataSource) {
   final repo = PharmacyRepositoryImpl(datasource: dataSource);
   return PharmacyCubit(
@@ -75,6 +85,7 @@ Future<void> pumpStockScreen(
   PharmacyCubit? pharmacyCubit,
   MockAuthDataSource? authDataSource,
   Map<String, WidgetBuilder> routes = const {},
+  bool settle = true,
 }) async {
   tester.view.physicalSize = const Size(800, 1400);
   tester.view.devicePixelRatio = 1;
@@ -95,12 +106,22 @@ Future<void> pumpStockScreen(
           '/home': (_) => const Scaffold(body: Text('Home Screen')),
           '/partner-profile': (_) =>
               const Scaffold(body: Text('Partner Profile Screen')),
+          '/partner-pending': (_) =>
+              const Scaffold(body: Text('Partner Pending Screen')),
+          '/partner-rejected': (_) =>
+              const Scaffold(body: Text('Partner Rejected Screen')),
+          '/partner-license': (_) =>
+              const Scaffold(body: Text('Partner License Screen')),
           ...routes,
         },
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
 }
 
 void main() {
@@ -454,5 +475,185 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
     });
+
+    testWidgets('redirects pending partner to partner-pending screen', (
+      tester,
+    ) async {
+      final dataSource = MockPharmacyDataSource(seedInitialData: false);
+      final pharmacy = PharmacyModel(
+        id: 'pharmacy-pending',
+        name: 'Pending Pharmacy',
+        area: 'Kigali',
+        district: 'Nyarugenge',
+        phone: '+250788000111',
+        email: 'pending@pharm.rw',
+        hours: '8:00 AM - 10:00 PM',
+        latitude: -1.95,
+        longitude: 30.06,
+        ownerId: 'user-pending',
+        status: 'pending',
+        licenseUrl: 'https://cloudinary.com/lic.pdf',
+        rmohCertUrl: 'https://cloudinary.com/rmoh.pdf',
+        submittedAt: DateTime(2026, 1, 2),
+        createdAt: DateTime(2026, 1, 1),
+      );
+      await dataSource.createPharmacy(pharmacy);
+
+      final cubit = _buildTestCubit(dataSource);
+
+      await pumpStockScreen(
+        tester,
+        pharmacyCubit: cubit,
+        authDataSource: _TestRoleAuthDataSource(userId: 'user-pending'),
+      );
+
+      // Verify redirected to Partner Pending Screen
+      expect(find.text('Partner Pending Screen'), findsOneWidget);
+      expect(find.byKey(const Key('add_stock_header_button')), findsNothing);
+    });
+
+    testWidgets('redirects rejected partner to partner-rejected screen', (
+      tester,
+    ) async {
+      final dataSource = MockPharmacyDataSource(seedInitialData: false);
+      final pharmacy = PharmacyModel(
+        id: 'pharmacy-rejected',
+        name: 'Rejected Pharmacy',
+        area: 'Kigali',
+        district: 'Gasabo',
+        phone: '+250788000222',
+        email: 'rejected@pharm.rw',
+        hours: '8:00 AM - 10:00 PM',
+        latitude: -1.95,
+        longitude: 30.06,
+        ownerId: 'user-rejected',
+        status: 'rejected',
+        rejectionReason: 'Invalid license format',
+        licenseUrl: 'https://cloudinary.com/lic.pdf',
+        rmohCertUrl: 'https://cloudinary.com/rmoh.pdf',
+        submittedAt: DateTime(2026, 1, 2),
+        createdAt: DateTime(2026, 1, 1),
+      );
+      await dataSource.createPharmacy(pharmacy);
+
+      final cubit = _buildTestCubit(dataSource);
+
+      await pumpStockScreen(
+        tester,
+        pharmacyCubit: cubit,
+        authDataSource: _TestRoleAuthDataSource(userId: 'user-rejected'),
+      );
+
+      // Verify redirected to Partner Rejected Screen
+      expect(find.text('Partner Rejected Screen'), findsOneWidget);
+      expect(find.byKey(const Key('add_stock_header_button')), findsNothing);
+    });
+
+    testWidgets(
+      'displays documents required guard when partner has unsubmitted documents',
+      (tester) async {
+        final dataSource = MockPharmacyDataSource(seedInitialData: false);
+        final pharmacy = PharmacyModel(
+          id: 'pharmacy-unsubmitted',
+          name: 'Unsubmitted Pharmacy',
+          area: 'Kigali',
+          district: 'Nyarugenge',
+          phone: '+250788000333',
+          email: 'unsub@pharm.rw',
+          hours: '8:00 AM - 10:00 PM',
+          latitude: -1.95,
+          longitude: 30.06,
+          ownerId: 'user-unsubmitted',
+          status: 'pending',
+          licenseUrl: null,
+          rmohCertUrl: null,
+          submittedAt: null,
+          createdAt: DateTime(2026, 1, 1),
+        );
+        await dataSource.createPharmacy(pharmacy);
+
+        final cubit = _buildTestCubit(dataSource);
+
+        await pumpStockScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'user-unsubmitted'),
+        );
+
+        expect(find.text('Verification Documents Required'), findsOneWidget);
+        expect(find.text('Upload Documents'), findsOneWidget);
+
+        await tester.tap(find.text('Upload Documents'));
+        await tester.pumpAndSettle();
+        expect(find.text('Partner License Screen'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'does not grant access using stale pharmacy belonging to another user',
+      (tester) async {
+        final dataSource = MockPharmacyDataSource(seedInitialData: false);
+        final otherUserPharmacy = PharmacyModel(
+          id: 'pharmacy-other',
+          name: 'Other User Pharmacy',
+          area: 'Kigali',
+          district: 'Nyarugenge',
+          phone: '+250788000444',
+          email: 'other@pharm.rw',
+          hours: '8:00 AM - 10:00 PM',
+          latitude: -1.95,
+          longitude: 30.06,
+          ownerId: 'user-other',
+          status: 'approved',
+          createdAt: DateTime(2026, 1, 1),
+        );
+        await dataSource.createPharmacy(otherUserPharmacy);
+
+        final cubit = _buildTestCubit(dataSource);
+        // Preload other user's approved pharmacy into cubit
+        await cubit.loadPharmacy('user-other');
+
+        // Now pump stock screen with different partner 'user-current' who has no pharmacy
+        await pumpStockScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'user-current'),
+        );
+
+        // Stale pharmacy must NOT be displayed; screen must reload and show no pharmacy for user-current
+        expect(find.text('Other User Pharmacy'), findsNothing);
+        expect(find.text('No Pharmacy Registered'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'loading state displays loading indicator and blocks stock management actions',
+      (tester) async {
+        final completer = Completer<PharmacyModel?>();
+        final dataSource = _DelayedPharmacyDataSource(completer.future);
+        final cubit = _buildTestCubit(dataSource);
+
+        // Start loading pharmacy for user
+        unawaited(cubit.loadPharmacy('user-loading'));
+
+        await pumpStockScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'user-loading'),
+          settle: false,
+        );
+        await tester.pump();
+
+        // Verify loading indicator is displayed while pharmacy is loading
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        // Header add stock button and stock list are blocked / not present
+        expect(find.byKey(const Key('add_stock_header_button')), findsNothing);
+        expect(find.byKey(const Key('add_stock_empty_button')), findsNothing);
+
+        // Complete the future to allow test teardown
+        completer.complete(null);
+        await tester.pumpAndSettle();
+      },
+    );
   });
 }

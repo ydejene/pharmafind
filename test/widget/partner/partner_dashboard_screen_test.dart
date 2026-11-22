@@ -434,5 +434,166 @@ void main() {
         expect(find.text('1'), findsOneWidget); // Low / Out
       },
     );
+
+    testWidgets(
+      'pending partner cannot enter stock management and receives clear feedback',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+        await mockDataSource.createPharmacy(
+          PharmacyModel(
+            id: 'pharm-pending-stock',
+            name: 'Pending Stock Pharmacy',
+            area: 'Kicukiro',
+            district: 'Kicukiro',
+            phone: '+250788777999',
+            email: 'pendingstock@pharma.rw',
+            hours: '8:00 AM - 8:00 PM',
+            latitude: -1.96,
+            longitude: 30.08,
+            ownerId: 'partner-pending-stock',
+            status: 'pending',
+            licenseUrl: 'https://cloudinary.com/lic.pdf',
+            rmohCertUrl: 'https://cloudinary.com/rmoh.pdf',
+            submittedAt: DateTime(2026, 1, 2),
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        );
+
+        final cubit = _buildTestCubit(mockDataSource);
+        await cubit.loadPharmacy('partner-pending-stock');
+
+        bool navigatedToStock = false;
+
+        await pumpDashboardScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource:
+              _TestRoleAuthDataSource(userId: 'partner-pending-stock'),
+          routes: {
+            '/partner-stock': (_) {
+              navigatedToStock = true;
+              return const Scaffold(body: Text('Stock Screen Target'));
+            },
+          },
+        );
+
+        // Manage Stock tile subtitle indicates verification approval required
+        expect(find.text('Verification approval required'), findsOneWidget);
+
+        // Tap manage stock action tile -> feedback SnackBar shown, no navigation to stock
+        await tester.tap(find.text('Verification approval required'));
+        await tester.pump();
+
+        expect(
+          find.text(
+            'Stock management is locked until pharmacy verification is approved.',
+          ),
+          findsOneWidget,
+        );
+        expect(navigatedToStock, isFalse);
+
+        // Stock summary card link shows "Approval Required"
+        expect(find.text('Approval Required'), findsOneWidget);
+
+        // Tap summary card link -> feedback SnackBar shown, no navigation to stock
+        await tester.tap(find.byKey(const Key('dashboard_manage_stock_link')));
+        await tester.pump();
+
+        expect(
+          find.text('Stock management requires pharmacy verification approval.'),
+          findsOneWidget,
+        );
+        expect(navigatedToStock, isFalse);
+      },
+    );
+
+    testWidgets(
+      'rejected partner cannot enter stock management and is directed to resubmission',
+      (tester) async {
+        final mockDataSource = MockPharmacyDataSource(seedInitialData: false);
+        await mockDataSource.createPharmacy(
+          PharmacyModel(
+            id: 'pharm-rej-stock',
+            name: 'Rejected Stock Pharmacy',
+            area: 'Gisozi',
+            district: 'Gasabo',
+            phone: '+250788444555',
+            email: 'rejstock@pharma.rw',
+            hours: '8:00 AM - 10:00 PM',
+            latitude: -1.93,
+            longitude: 30.07,
+            ownerId: 'partner-rej-stock',
+            status: 'rejected',
+            rejectionReason: 'Invalid document',
+            licenseUrl: 'https://cloudinary.com/lic.pdf',
+            rmohCertUrl: 'https://cloudinary.com/rmoh.pdf',
+            submittedAt: DateTime(2026, 1, 2),
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        );
+
+        final cubit = _buildTestCubit(mockDataSource);
+        await cubit.loadPharmacy('partner-rej-stock');
+
+        bool navigatedToRejected = false;
+        bool navigatedToStock = false;
+
+        await pumpDashboardScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource:
+              _TestRoleAuthDataSource(userId: 'partner-rej-stock'),
+          routes: {
+            '/partner-stock': (_) {
+              navigatedToStock = true;
+              return const Scaffold(body: Text('Stock Screen Target'));
+            },
+            '/partner-rejected': (_) {
+              navigatedToRejected = true;
+              return const Scaffold(key: Key('partner_rejected_target'));
+            },
+          },
+        );
+
+        // Quick action subtitle indicates rejection and resubmission
+        expect(
+          find.text('Verification rejected — resubmission required'),
+          findsOneWidget,
+        );
+
+        // Tapping Manage Stock tile directs partner toward rejection screen
+        await tester.tap(
+          find.text('Verification rejected — resubmission required'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(navigatedToRejected, isTrue);
+        expect(navigatedToStock, isFalse);
+      },
+    );
+
+    testWidgets(
+      'error state does not expose enabled stock-management action',
+      (tester) async {
+        final failingDataSource = _FailingPharmacyDataSource();
+        final cubit = _buildTestCubit(failingDataSource);
+
+        await pumpDashboardScreen(
+          tester,
+          pharmacyCubit: cubit,
+          authDataSource: _TestRoleAuthDataSource(userId: 'partner-err-1'),
+        );
+
+        // Error message & retry button are displayed
+        expect(find.text('Retry'), findsOneWidget);
+
+        // Stock summary card and Manage Stock tile are not exposed
+        expect(
+          find.byKey(const Key('dashboard_manage_stock_link')),
+          findsNothing,
+        );
+        expect(find.text('Listed'), findsNothing);
+      },
+    );
   });
 }

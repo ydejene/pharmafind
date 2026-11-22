@@ -14,4 +14,14 @@ abstract class IPharmacyDataSource {
   Future<void> deleteStockItem(String stockId);
   Future<List<StockItemModel>> getPharmacyStock(String pharmacyId);
   Stream<List<StockItemModel>> watchPharmacyStock(String pharmacyId);
+
+  /// Updates verification document URLs and marks the submission timestamp
+  /// with a server timestamp in Firestore.
+  Future<void> updateVerificationDocuments({
+    required String pharmacyId,
+    String? licenseUrl,
+    String? licensePublicId,
+    String? rmohCertUrl,
+    String? rmohCertPublicId,
+  });
 }

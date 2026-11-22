@@ -66,7 +66,7 @@ Future<void> pumpSignupScreen(
       child: MaterialApp(
         home: const PartnerSignupScreen(),
         routes: {
-          '/partner-license': (_) => const Scaffold(key: Key('license')),
+          '/partner-profile': (_) => const Scaffold(key: Key('profile')),
           ...routes,
         },
       ),
@@ -126,7 +126,7 @@ void main() {
       expect(find.textContaining('Email already in use'), findsOneWidget);
     });
 
-    testWidgets('navigates to /partner-license on successful registration', (
+    testWidgets('navigates to /partner-profile on successful registration', (
       tester,
     ) async {
       await pumpSignupScreen(tester, authDataSource: _PartnerAuthDataSource());
@@ -142,7 +142,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('license')), findsOneWidget);
+      expect(find.byKey(const Key('profile')), findsOneWidget);
     });
 
     testWidgets('password visibility toggle works', (tester) async {

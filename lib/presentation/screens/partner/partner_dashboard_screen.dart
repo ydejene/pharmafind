@@ -12,7 +12,7 @@ import '../../bloc/pharmacy/pharmacy_cubit.dart';
 import '../../bloc/settings/settings_cubit.dart';
 import '../../widgets/pharmafind_logo.dart';
 
-/// Partner dashboard screen (Stage 4).
+/// Partner dashboard screen.
 ///
 /// **Access Control & State Management:**
 /// - Verifies that the authenticated user possesses the partner role (`user.isPartner`).
@@ -31,14 +31,16 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-load partner pharmacy if not already loaded
+    // Auto-load partner pharmacy if not already loaded or if stale
     final authState = context.read<AuthBloc>().state;
     final pharmacyState = context.read<PharmacyCubit>().state;
-    if (authState is AuthAuthenticated &&
-        authState.user.isPartner &&
-        pharmacyState.pharmacy == null &&
-        pharmacyState.status != PharmacyStatus.loading) {
-      context.read<PharmacyCubit>().loadPharmacy(authState.user.uid);
+    if (authState is AuthAuthenticated && authState.user.isPartner) {
+      final pharmacy = pharmacyState.pharmacy;
+      final isStale = pharmacy != null && pharmacy.ownerId != authState.user.uid;
+      if ((isStale || pharmacy == null) &&
+          pharmacyState.status != PharmacyStatus.loading) {
+        context.read<PharmacyCubit>().loadPharmacy(authState.user.uid);
+      }
     }
   }
 
@@ -52,7 +54,9 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
       listener: (context, state) {
         if (state is AuthAuthenticated && state.user.isPartner) {
           final pState = context.read<PharmacyCubit>().state;
-          if (pState.pharmacy == null &&
+          final isStale = pState.pharmacy != null &&
+              pState.pharmacy!.ownerId != state.user.uid;
+          if ((isStale || pState.pharmacy == null) &&
               pState.status != PharmacyStatus.loading) {
             context.read<PharmacyCubit>().loadPharmacy(state.user.uid);
           }
@@ -161,9 +165,10 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
 
     final user = authState.user;
     final pharmacy = pharmacyState.pharmacy;
-    final isLoading = pharmacyState.status == PharmacyStatus.loading;
-    final hasError = pharmacyState.status == PharmacyStatus.error;
-    final noPharmacy = pharmacy == null && !isLoading;
+    final isStaleOwner = pharmacy != null && pharmacy.ownerId != user.uid;
+    final isLoading = pharmacyState.status == PharmacyStatus.loading || isStaleOwner;
+    final hasError = pharmacyState.status == PharmacyStatus.error && !isStaleOwner;
+    final noPharmacy = pharmacy == null && !isLoading && !hasError;
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -254,7 +259,7 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                     color: Colors.white,
                   ),
                 ),
-                if (pharmacy != null) ...[
+                if (pharmacy != null && !isStaleOwner) ...[
                   const SizedBox(height: 4),
                   Text(
                     pharmacy.name,
@@ -390,12 +395,17 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                     ),
 
                   // State 4: Profile exists -> Display status & information
-                  if (pharmacy != null && !isLoading) ...[
+                  if (pharmacy != null && !isLoading && !hasError) ...[
                     _buildVerificationBadge(context, pharmacy, locale),
                     const SizedBox(height: 16),
                     _buildProfileCard(pharmacy, locale),
                     const SizedBox(height: 16),
-                    _buildStockSummaryCard(context, pharmacyState, locale),
+                    _buildStockSummaryCard(
+                      context,
+                      pharmacyState,
+                      pharmacy,
+                      locale,
+                    ),
                     const SizedBox(height: 20),
                     Text(
                       AppStrings.get('quick_actions', locale),
@@ -407,14 +417,7 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _ActionTile(
-                      icon: Icons.inventory_2_outlined,
-                      title: AppStrings.get('manage_stock', locale),
-                      subtitle: AppStrings.get('add_update_medicine', locale),
-                      onTap: () =>
-                          Navigator.of(context)
-                              .pushNamed(AuthRoutes.partnerStock),
-                    ),
+                    _buildManageStockTile(context, pharmacy, locale),
                     _ActionTile(
                       icon: Icons.store_outlined,
                       title: AppStrings.get('pharmacy_profile', locale),
@@ -609,9 +612,54 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
     );
   }
 
+  Widget _buildManageStockTile(
+    BuildContext context,
+    PharmacyEntity pharmacy,
+    String locale,
+  ) {
+    if (pharmacy.isApproved) {
+      return _ActionTile(
+        icon: Icons.inventory_2_outlined,
+        title: AppStrings.get('manage_stock', locale),
+        subtitle: AppStrings.get('add_update_medicine', locale),
+        onTap: () =>
+            Navigator.of(context).pushNamed(AuthRoutes.partnerStock),
+      );
+    }
+
+    if (pharmacy.isRejected) {
+      return _ActionTile(
+        icon: Icons.inventory_2_outlined,
+        title: AppStrings.get('manage_stock', locale),
+        subtitle: 'Verification rejected — resubmission required',
+        onTap: () =>
+            Navigator.of(context).pushNamed(AuthRoutes.partnerRejected),
+      );
+    }
+
+    // Pending / Resubmitted / Incomplete verification
+    return _ActionTile(
+      icon: Icons.inventory_2_outlined,
+      title: AppStrings.get('manage_stock', locale),
+      subtitle: 'Verification approval required',
+      onTap: () {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Stock management is locked until pharmacy verification is approved.',
+            ),
+            backgroundColor: AppColors.warningYellow,
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildStockSummaryCard(
     BuildContext context,
     PharmacyState pharmacyState,
+    PharmacyEntity pharmacy,
     String locale,
   ) {
     final isLoading = pharmacyState.status == PharmacyStatus.loading;
@@ -638,6 +686,37 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
         : hasError
         ? '-'
         : lowOrOutCount.toString();
+
+    // Link styling and action based on pharmacy verification status
+    final String manageLinkText;
+    final Color manageLinkColor;
+    final VoidCallback manageLinkOnTap;
+
+    if (pharmacy.isApproved) {
+      manageLinkText = AppStrings.get('manage_stock', locale);
+      manageLinkColor = AppColors.primaryGreen;
+      manageLinkOnTap = () =>
+          Navigator.of(context).pushNamed(AuthRoutes.partnerStock);
+    } else if (pharmacy.isRejected) {
+      manageLinkText = 'Action Required';
+      manageLinkColor = AppColors.errorRed;
+      manageLinkOnTap = () =>
+          Navigator.of(context).pushNamed(AuthRoutes.partnerRejected);
+    } else {
+      manageLinkText = 'Approval Required';
+      manageLinkColor = AppColors.warningYellow;
+      manageLinkOnTap = () {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Stock management requires pharmacy verification approval.',
+            ),
+            backgroundColor: AppColors.warningYellow,
+          ),
+        );
+      };
+    }
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -671,8 +750,7 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
               ),
               InkWell(
                 key: const Key('dashboard_manage_stock_link'),
-                onTap: () =>
-                    Navigator.of(context).pushNamed(AuthRoutes.partnerStock),
+                onTap: manageLinkOnTap,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -680,11 +758,11 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
                     vertical: 2,
                   ),
                   child: Text(
-                    AppStrings.get('manage_stock', locale),
-                    style: const TextStyle(
+                    manageLinkText,
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primaryGreen,
+                      color: manageLinkColor,
                     ),
                   ),
                 ),
@@ -726,6 +804,14 @@ class _PartnerDashboardScreenState extends State<PartnerDashboardScreen> {
             const Text(
               'Unable to load inventory data',
               style: TextStyle(fontSize: 11, color: AppColors.errorRed),
+            ),
+          ] else if (!pharmacy.isApproved) ...[
+            const SizedBox(height: 8),
+            Text(
+              pharmacy.isRejected
+                  ? 'Inventory management is disabled while verification is rejected.'
+                  : 'Inventory management activates once your pharmacy is approved.',
+              style: const TextStyle(fontSize: 11, color: AppColors.textLight),
             ),
           ] else if (totalCount == 0 && !isLoading) ...[
             const SizedBox(height: 8),
