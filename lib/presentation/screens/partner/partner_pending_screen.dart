@@ -16,8 +16,8 @@ import '../../bloc/settings/settings_cubit.dart';
 /// [PharmacyEntity.status] and surfaced by [PharmacyCubit].
 /// - If a persisted pharmacy record exists for the owner, this screen displays
 ///   its name and persisted status.
-/// - If no pharmacy record exists yet (e.g. because full pharmacy profile creation
-///   is completed in Stage 4), a clear status-preview notice is shown.
+/// - If no pharmacy record exists yet (e.g. before pharmacy profile registration),
+///   a clear status-preview notice is shown.
 /// - Tapping "Check Status" actively re-queries the pharmacy repository via
 ///   [PharmacyCubit.loadPharmacy].
 class PartnerPendingScreen extends StatelessWidget {
@@ -133,7 +133,7 @@ class PartnerPendingScreen extends StatelessWidget {
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Status Notice: No persisted pharmacy record exists yet for this account. Pharmacy profile registration is completed in Stage 4.',
+                          'Status Notice: No persisted pharmacy record exists yet for this account. Please complete your pharmacy profile registration to proceed with verification.',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textMedium,

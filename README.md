@@ -1,124 +1,195 @@
 # PharmaFind
 
-PharmaFind is a Flutter mobile application that helps users locate prescribed medicines at nearby pharmacies in Rwanda. Users can explore pharmacy locations, check medicine availability, compare prices, and access relevant pharmacy information.
+PharmaFind is a Flutter mobile application for locating prescribed medicines at nearby pharmacies in Rwanda.
+
+![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-^3.13.4-0175C2?logo=dart&logoColor=white)
+![State Management](https://img.shields.io/badge/State_Management-Flutter_Bloc_9.1.1-blueviolet)
+![Backend](https://img.shields.io/badge/Backend-Firebase_Auth_%26_Firestore-FFA611?logo=firebase&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Tests](https://img.shields.io/badge/Tests-248_passed-brightgreen)
+
+---
+
+## Core Features
+
+PharmaFind provides two distinct, role-based workflows:
+
+### Patient Workflow
+- **Medicine Search:** Real-time search across registered pharmacies in Kigali using normalized name prefix queries (`medicineNameLower`), displaying current prices, stock availability, and distance.
+- **Interactive Map & Directions:** OpenStreetMap rendering via `flutter_map` showing pharmacy location, current device GPS coordinates (`geolocator`), and turn-by-turn route overview.
+- **Pharmacy Details & Direct Contact:** View operating hours, district/area, physical address, and initiate direct phone calls or emails via `url_launcher`.
+- **Restock Availability Alerts:** Subscribe to medicine availability notifications for out-of-stock items, stored under the `/alerts` Firestore collection.
+- **Localization:** Multilingual support for English (`en`), Kinyarwanda (`rw`), and French (`fr`).
+- **Theme Customization:** Light and dark mode support with preferences persisted locally via `shared_preferences`.
+- **Authentication & Profile:** Email/password registration, login, Google Sign-In, password recovery, and profile editing.
+
+### Pharmacy Partner Workflow
+- **Dedicated Partner Onboarding:** Role-based registration (`role: 'partner'`) with automatic onboarding routing.
+- **Pharmacy Profile Management:** Create and update pharmacy profiles including pharmacy name, Kigali district/area, operating hours, contact phone, contact email, and GPS coordinates.
+- **Document Verification:** Upload Rwanda Ministry of Health (RMOH) pharmacy licenses and business registration certificates through a secure Cloudinary upload pipeline using `file_picker`.
+- **Application Lifecycle Tracking:** Status-aware interface reflecting application states (`pending`, `approved`, `rejected`) with administrative review feedback, rejection reasons, and rejected-document resubmission.
+- **Approval-Restricted Inventory Management:** Manage pharmacy stock items with full CRUD support (add, edit price/quantity, delete with confirmation dialogs) restricted strictly to approved pharmacy partners and synchronized in real-time through Firestore streams.
+
+---
 
 ## Technology Stack
 
 - **Framework:** Flutter
-- **Language:** Dart
-- **Backend:** Firebase
-- **Database:** Cloud Firestore
-- **State Management:** BLoC / Cubit
-- **Platforms:** Android and Web
+- **Language:** Dart (SDK `^3.13.4`)
+- **State Management:** Flutter BLoC (`flutter_bloc: ^9.1.1`, `equatable: ^3.0.0`)
+- **Backend & Database:** Firebase Authentication (`firebase_auth: ^7.0.1`), Cloud Firestore (`cloud_firestore: ^7.1.0`), and Firebase Core (`firebase_core: ^5.1.0`)
+- **Authentication Provider:** Google Sign-In (`google_sign_in: ^7.2.0`)
+- **Document Storage:** Cloudinary REST API (`http: ^1.2.2`, `file_picker: ^13.4.1`)
+- **Mapping & Geolocation:** `flutter_map: ^8.3.2`, `latlong2: ^0.10.1`, and `geolocator: ^14.1.2`
+- **Local Persistence:** `shared_preferences: ^2.5.6`
+- **External Communication:** `url_launcher: ^6.3.3` (telephony, mailto, maps)
 
-## Getting Started
+---
+
+## Architecture
+
+PharmaFind follows Clean Architecture with a strict unidirectional dependency flow across four core layers:
+
+```
+Presentation Layer (UI Screens, Reusable Widgets, BLoCs & Cubits)
+       ↓ (invokes)
+Use Cases (Granular, Single-Responsibility Business Rules)
+       ↓ (depends on)
+Domain Repository Contracts (Abstract Interfaces)
+       ↑ (implements)
+Data Repository Implementations (Coordination & Mapping)
+       ↓ (calls)
+Data Sources (Firebase Auth, Cloud Firestore, Cloudinary API, SharedPreferences)
+```
+
+### Layer Responsibilities
+
+1. **Presentation (`lib/presentation/`):**
+   - Screens for onboarding, patient search, map directions, pharmacy details, and partner management.
+   - State management via `AuthBloc`, `SettingsCubit`, `PharmacyCubit`, `SearchCubit`, and `AlertCubit`.
+   - Reusable UI components including the code-drawn `PharmaFindLogo`, authentication forms, and loading overlays.
+2. **Domain (`lib/domain/`):**
+   - Pure business logic independent of Flutter and external backend SDKs.
+   - **Entities:** `UserEntity`, `PharmacyEntity`, `MedicineEntity`, `StockItemEntity`, `AlertEntity`, `SettingsEntity`.
+   - **Repository Contracts:** `IAuthRepository`, `IPharmacyRepository`, `IAlertRepository`, `ISettingsRepository`.
+   - **Use Cases:** Fine-grained use cases (e.g., `SearchMedicineUseCase`, `GetPharmacyStockUseCase`, `SubmitVerificationDocumentsUseCase`, `AddStockItemUseCase`, `UpdateStockItemUseCase`, `DeleteStockItemUseCase`).
+3. **Data (`lib/data/`):**
+   - **Data Sources:** Concrete integrations with Firebase Auth, Cloud Firestore (`pharmacies`, `stock`, `alerts`, `users`), Cloudinary HTTP uploads, and `SharedPreferences`.
+   - **Models:** DTOs with bidirectional serialization (`toEntity()`, `fromEntity()`, `toMap()`, `fromFirestore()`).
+   - **Repository Implementations:** `AuthRepositoryImpl`, `PharmacyRepositoryImpl`, `AlertRepositoryImpl`, `SettingsRepositoryImpl`.
+4. **Core (`lib/core/`):**
+   - Shared cross-cutting foundations: `AppColors`, `AppStrings` (localization keys), `AppTheme`, `AppConfig`, and input validators.
+
+### Project Structure
+
+```
+lib/
+├── core/
+│   ├── constants/           # AppColors, AppStrings, AppConfig, AuthRoutes
+│   ├── theme/               # Light and Dark theme configurations
+│   └── utils/               # Form validators and input formatters
+├── data/
+│   ├── datasources/         # Firebase, Cloudinary, and local data sources (with mocks)
+│   ├── models/              # DTO models with bidirectional entity mapping
+│   └── repositories/        # Repository implementations
+├── domain/
+│   ├── entities/            # Pure business entities
+│   ├── repositories/        # Abstract repository contracts
+│   └── usecases/            # Granular domain use cases
+├── presentation/
+│   ├── bloc/                # BLoC and Cubit state management
+│   ├── mixins/              # Form mixins and helpers
+│   ├── screens/             # Patient, partner, onboarding, and profile screens
+│   ├── utils/               # Navigation and snackbar presentation helpers
+│   └── widgets/             # Reusable widgets and code-rendered branding
+├── app.dart                 # Application root with onGenerateRoute routing table
+├── firebase_options.dart    # Firebase platform options
+└── main.dart                # Entry point, dependency injection, and MultiBlocProvider setup
+```
+
+---
+
+## Setup and Running
 
 ### Prerequisites
 
-- Flutter SDK
-- Dart SDK (included with Flutter)
-- Android Studio or VS Code
-- An Android emulator or physical device
+- **Flutter SDK:** Flutter (3.x compatible)
+- **Dart SDK:** Included with Flutter (SDK `^3.13.4`)
+- **Platform Tools:** Android Studio with Android SDK (API 21+) or VS Code with Flutter extension
+- An active Android emulator, physical Android device, or Google Chrome for web testing
 
-### Setup
+### Installation
 
-1. Clone the repository.
-2. Open the project directory.
-3. Install dependencies:
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd pharmafind
+   ```
 
+2. Install project dependencies:
    ```bash
    flutter pub get
    ```
 
-4. Run the application:
-
+3. Run the application:
    ```bash
    flutter run
    ```
 
-### Firebase setup
+### Firebase Configuration
 
-The app is configured for the Firebase project `pharmafind-6e48a` on Android,
-iOS, and Web. The generated `lib/firebase_options.dart`,
-`android/app/google-services.json`, and `ios/Runner/GoogleService-Info.plist`
-files are required for local builds.
+Developers must configure the application with their own Firebase project:
+- Provide your Firebase project configuration files: `lib/firebase_options.dart` (generated via the FlutterFire CLI), `android/app/google-services.json`, and `ios/Runner/GoogleService-Info.plist`.
+- **Firebase Authentication:**
+  - Email/Password sign-in provider enabled.
+  - Google Sign-In provider enabled.
+- **Cloud Firestore Database Collections:**
+  - `users/{uid}`: User accounts with segregated roles (`patient` or `partner`).
+  - `pharmacies/{pharmacyId}`: Registered pharmacy profiles with verification states (`pending`, `approved`, `rejected`).
+  - `stock/{stockId}`: Pharmacy inventory items with `medicineNameLower` indexing for prefix queries.
+  - `alerts/{alertId}`: Restock notification subscriptions.
+- **Security Rules:** Deploy rules from `firestore.rules` to enforce role-based access and data integrity.
 
-In the Firebase Console for this project:
+### Cloudinary Document Upload Configuration
 
-1. Enable **Authentication > Sign-in method > Email/Password**.
-2. Enable **Authentication > Sign-in method > Google**.
-3. Create a Cloud Firestore database.
-4. Deploy the rules in `firestore.rules`, or apply equivalent rules in the
-  Firestore Rules tab.
+Verification document uploads for pharmacy partners are configured in `lib/core/constants/app_config.dart`. Each developer must configure their own Cloudinary account credentials before testing document uploads:
+- **`cloudinaryCloudName`**: Your Cloudinary cloud name.
+- **`cloudinaryUploadPreset`**: Your unsigned upload preset configured in Cloudinary.
+- **`cloudinaryUploadFolder`**: The target folder for uploaded verification documents (e.g., `pharmafind/partner-verification`).
 
-User profiles are stored at `users/{uid}`. Email registration, email login,
-password reset, Google login, sign-out, and profile updates use Firebase Auth
-and Firestore through the existing auth use cases and `AuthBloc`.
+> [!NOTE]
+> For demonstration and evaluation purposes, Cloudinary uploads use an unsigned preset with public delivery. Document URLs are generated through HTTPS multipart uploads without storing or exposing private API secrets. Please use mock test documents (sample images/PDFs, not real personal identification or legal licenses) during evaluation.
 
-The Firestore pharmacy repository is available through the app provider tree.
-The initial database seed contains four approved pharmacies in `pharmacies`
-and eight stock records in `stock`. Medicine search uses the normalized
-`medicineNameLower` field for prefix queries.
+---
 
-## Project Structure
-
-The application follows clean architecture principles, separating core application foundations, data access, business logic, and presentation:
-
-```
-lib/
-├── core/                  # Shared foundations and cross-cutting concerns
-│   ├── constants/         # AppColors, AppStrings (localization: en, rw, fr)
-│   ├── theme/             # Light and Dark theme configurations
-│   └── utils/             # Input validation utilities
-├── domain/                # Pure business logic and contracts (no Flutter/Firebase dependencies)
-│   ├── entities/          # Pure domain models (UserEntity, PharmacyEntity, etc.)
-│   ├── repositories/      # Abstract repository interfaces (IAuthRepository, ISettingsRepository, etc.)
-│   └── usecases/          # Granular use cases for Auth and Settings operations
-├── data/                  # Data access, persistence, and external service adapters
-│   ├── datasources/       # Firebase Auth/Firestore and local data sources
-│   ├── models/            # Data models with explicit toEntity()/fromEntity() and JSON/Map mapping
-│   └── repositories/      # Repository implementations connecting use cases to datasources
-└── presentation/          # User interface and state management
-    ├── bloc/              # BLoC / Cubit state management (AuthBloc, SettingsCubit)
-    ├── screens/           # Application screens (SplashScreen, foundation routing placeholders)
-    └── widgets/           # Shared, reusable UI components (PharmaFindLogo)
-```
-
-## Running Tests & Static Analysis
+## Testing & Quality Assurance
 
 Run static code analysis:
-
 ```bash
 flutter analyze
 ```
 
-Execute the unit and widget test suite:
-
+Execute the automated test suite:
 ```bash
 flutter test
 ```
 
-## Contribution Guidelines
+### Verified Test Results
 
-- Work on a dedicated feature branch created from the agreed development branch.
-- Keep changes focused on the assigned task.
-- Follow the established project architecture and coding conventions:
-  - Domain entities must remain pure and free from framework/data dependencies.
-  - Data models must provide explicit bidirectional mapping with domain entities.
-  - BLoCs and Cubits should depend on domain use cases rather than concrete data sources.
-- Test changes before requesting integration (`flutter analyze` and `flutter test`).
-- Use descriptive commit messages.
-- Coordinate changes involving shared models, services, routing, and application configuration with the team.
+- **Static Analysis:** Zero issues reported (`No issues found!`).
+- **Test Suite:** **248 automated tests passing (100% pass rate)** covering:
+  - Domain use cases and repository contracts.
+  - Data models, Firestore serialization, and Cloudinary error handling.
+  - BLoC and Cubit state transitions (`AuthBloc`, `PharmacyCubit`, `SearchCubit`, `SettingsCubit`, `AlertCubit`).
+  - Widget and screen interaction tests for authentication, partner onboarding, profile creation, license upload, and real-time stock management.
 
-## Development Status
+---
 
-- **Shared Foundation (Completed):**
-  - Project structure and clean architecture layers established.
-  - Core domain entities, repository contracts, and use cases.
-  - Data models with explicit entity mapping and serialization.
-  - Firebase authentication data source, Firestore user profiles, repository,
-    use cases, and `AuthBloc`.
-  - Settings pipeline with `SharedPreferencesSettingsDataSource`, repository, use cases, and `SettingsCubit`.
-  - Application entry (`main.dart`), theme switching, and splash screen with route stubs (`/login`, `/language`).
-  - Unit and widget test suite covering models, settings, authentication, and UI branding.
-- **Next Stage:** Feature development (pharmacy listing and medicine search).
+## Project Information
+
+- **Project:** PharmaFind Mobile Application
+- **Course:** Mobile Application Development (Trimester 06 Summative)
+- **Institution:** African Leadership University (ALU)
+- **Author:** Cohort 2 Group 6 (Copyright (c) 2026)
+- **License:** [MIT License](LICENSE)

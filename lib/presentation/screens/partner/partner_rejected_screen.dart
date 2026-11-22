@@ -12,9 +12,9 @@ import '../../bloc/settings/settings_cubit.dart';
 /// **Domain & Action Accuracy:**
 /// - Surfaced when `PharmacyEntity.status == 'rejected'` via [PharmacyCubit].
 /// - Displays the persistent pharmacy name when available.
-/// - Accurately provides an action to review and update pharmacy profile details
-///   ([AuthRoutes.partnerProfile]) rather than falsely implying automated document
-///   re-upload or instant status reset.
+/// - Displays the persistent pharmacy name, reviewer rejection reason, and checklist.
+/// - Provides actions to resubmit verification documents ([AuthRoutes.partnerLicense]),
+///   update pharmacy profile details ([AuthRoutes.partnerProfile]), or return home.
 class PartnerRejectedScreen extends StatelessWidget {
   const PartnerRejectedScreen({super.key});
 
