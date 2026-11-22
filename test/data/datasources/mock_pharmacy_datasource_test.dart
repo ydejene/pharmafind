@@ -178,5 +178,75 @@ void main() {
         await sub.cancel();
       },
     );
+
+    test('preserves verification document metadata across create and update', () async {
+      final submissionTime = DateTime(2025, 2, 1, 10, 30);
+      final reviewTime = DateTime(2025, 2, 2, 14, 0);
+
+      final pharmacyWithDocs = PharmacyModel(
+        id: '',
+        name: 'Verification Test Pharmacy',
+        area: 'Remera',
+        district: 'Gasabo',
+        phone: '+250 788 123 456',
+        email: 'verify@pharmacy.rw',
+        hours: '8:00 AM - 10:00 PM',
+        latitude: -1.9500,
+        longitude: 30.1100,
+        ownerId: 'owner-verify',
+        status: 'pending',
+        acceptsInsurance: true,
+        createdAt: DateTime(2025, 1, 1),
+        licenseUrl: 'https://res.cloudinary.com/test/license.pdf',
+        licensePublicId: 'pharmafind/partner-verification/license_1',
+        rmohCertUrl: 'https://res.cloudinary.com/test/rmoh.pdf',
+        rmohCertPublicId: 'pharmafind/partner-verification/rmoh_1',
+        submittedAt: submissionTime,
+        rejectionReason: 'Document illegible',
+        reviewedAt: reviewTime,
+        reviewedBy: 'admin-1',
+      );
+
+      final id = await dataSource.createPharmacy(pharmacyWithDocs);
+      final fetched = await dataSource.getPharmacy(id);
+
+      expect(fetched, isNotNull);
+      expect(fetched!.licenseUrl, 'https://res.cloudinary.com/test/license.pdf');
+      expect(fetched.licensePublicId, 'pharmafind/partner-verification/license_1');
+      expect(fetched.rmohCertUrl, 'https://res.cloudinary.com/test/rmoh.pdf');
+      expect(fetched.rmohCertPublicId, 'pharmafind/partner-verification/rmoh_1');
+      expect(fetched.submittedAt, submissionTime);
+      expect(fetched.rejectionReason, 'Document illegible');
+      expect(fetched.reviewedAt, reviewTime);
+      expect(fetched.reviewedBy, 'admin-1');
+
+      final map = fetched.toMap();
+      final fromMap = PharmacyModel.fromMap(map, id);
+      expect(fromMap.licenseUrl, fetched.licenseUrl);
+      expect(fromMap.submittedAt, fetched.submittedAt);
+      expect(fromMap.rejectionReason, fetched.rejectionReason);
+
+      final legacyMap = <String, dynamic>{
+        'name': 'Legacy Pharmacy',
+        'area': 'Kacyiru',
+        'district': 'Gasabo',
+        'phone': '+250 788 000 000',
+        'email': 'legacy@pharmacy.rw',
+        'hours': '9:00 - 17:00',
+        'latitude': -1.94,
+        'longitude': 30.06,
+        'ownerId': 'owner-legacy',
+        'status': 'approved',
+        'acceptsInsurance': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+      final legacyModel = PharmacyModel.fromMap(legacyMap, 'legacy-1');
+      expect(legacyModel.licenseUrl, isNull);
+      expect(legacyModel.rmohCertUrl, isNull);
+      expect(legacyModel.submittedAt, isNull);
+      expect(legacyModel.rejectionReason, isNull);
+      expect(legacyModel.reviewedAt, isNull);
+      expect(legacyModel.reviewedBy, isNull);
+    });
   });
 }

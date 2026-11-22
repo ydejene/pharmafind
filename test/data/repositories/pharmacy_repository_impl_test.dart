@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pharmafind/data/datasources/mock_cloudinary_datasource.dart';
 import 'package:pharmafind/data/datasources/mock_pharmacy_datasource.dart';
 import 'package:pharmafind/data/repositories/pharmacy_repository_impl.dart';
 import 'package:pharmafind/domain/entities/pharmacy_entity.dart';
@@ -152,6 +155,48 @@ void main() {
       final firstEmission = await stream.first;
       expect(firstEmission, isNotEmpty);
       expect(firstEmission.first, isA<StockItemEntity>());
+    });
+
+    test('submitVerificationDocuments uploads both files and updates pharmacy', () async {
+      final mockCloudinary = MockCloudinaryDataSource();
+      final customRepo = PharmacyRepositoryImpl(
+        datasource: dataSource,
+        cloudinaryDatasource: mockCloudinary,
+      );
+
+      final licenseBytes = Uint8List.fromList([1, 2, 3]);
+      final rmohBytes = Uint8List.fromList([4, 5, 6]);
+
+      final updated = await customRepo.submitVerificationDocuments(
+        pharmacyId: 'pharm-1',
+        licenseBytes: licenseBytes,
+        licenseFilename: 'license.pdf',
+        rmohBytes: rmohBytes,
+        rmohFilename: 'rmoh.pdf',
+      );
+
+      expect(updated.licenseUrl, contains('license.pdf'));
+      expect(updated.licensePublicId, contains('license.pdf'));
+      expect(updated.rmohCertUrl, contains('rmoh.pdf'));
+      expect(updated.rmohCertPublicId, contains('rmoh.pdf'));
+      expect(updated.submittedAt, isNotNull);
+
+      final persisted = await dataSource.getPharmacy('pharm-1');
+      expect(persisted?.licenseUrl, contains('license.pdf'));
+      expect(persisted?.submittedAt, isNotNull);
+    });
+
+    test('submitVerificationDocuments throws when pharmacy does not exist', () async {
+      expect(
+        () => repository.submitVerificationDocuments(
+          pharmacyId: 'non-existent',
+          licenseBytes: Uint8List(0),
+          licenseFilename: 'a.pdf',
+          rmohBytes: Uint8List(0),
+          rmohFilename: 'b.pdf',
+        ),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }

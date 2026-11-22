@@ -218,21 +218,9 @@ class MockPharmacyDataSource implements IPharmacyDataSource {
   @override
   Future<String> createPharmacy(PharmacyModel pharmacy) async {
     final id = pharmacy.id.isNotEmpty ? pharmacy.id : _nextId('pharm');
-    final created = PharmacyModel(
-      id: id,
-      name: pharmacy.name,
-      area: pharmacy.area,
-      district: pharmacy.district,
-      phone: pharmacy.phone,
-      email: pharmacy.email,
-      hours: pharmacy.hours,
-      latitude: pharmacy.latitude,
-      longitude: pharmacy.longitude,
-      ownerId: pharmacy.ownerId,
-      status: pharmacy.status,
-      acceptsInsurance: pharmacy.acceptsInsurance,
-      createdAt: pharmacy.createdAt,
-    );
+    final created = pharmacy.id.isNotEmpty
+        ? pharmacy
+        : pharmacy.copyWith(id: id);
     _pharmacies[id] = created;
     return id;
   }

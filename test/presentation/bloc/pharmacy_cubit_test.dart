@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pharmafind/domain/entities/pharmacy_entity.dart';
@@ -9,6 +10,7 @@ import 'package:pharmafind/domain/usecases/pharmacy/create_pharmacy_usecase.dart
 import 'package:pharmafind/domain/usecases/pharmacy/delete_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_by_owner_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
+import 'package:pharmafind/domain/usecases/pharmacy/submit_verification_documents_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
@@ -104,6 +106,37 @@ class _MockPharmacyRepository implements IPharmacyRepository {
 
   @override
   Future<List<StockItemEntity>> searchMedicine(String query) async => [];
+
+  Exception? submitDocumentsError;
+  PharmacyEntity? submitDocumentsResult;
+  String? lastSubmittedPharmacyId;
+
+  @override
+  Future<PharmacyEntity> submitVerificationDocuments({
+    required String pharmacyId,
+    required Uint8List licenseBytes,
+    required String licenseFilename,
+    required Uint8List rmohBytes,
+    required String rmohFilename,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    if (submitDocumentsError != null) throw submitDocumentsError!;
+    lastSubmittedPharmacyId = pharmacyId;
+    return submitDocumentsResult ??
+        PharmacyEntity(
+          id: pharmacyId,
+          name: 'City Care Pharmacy',
+          area: 'Kacyiru',
+          phone: '+250 788 111 222',
+          email: 'citycare@pharmacy.rw',
+          latitude: -1.944,
+          longitude: 30.061,
+          ownerId: 'owner-1',
+          createdAt: DateTime(2025, 1, 1),
+          licenseUrl: 'https://cloudinary.com/lic.pdf',
+          submittedAt: DateTime.now(),
+        );
+  }
 }
 
 void main() {
@@ -154,6 +187,8 @@ void main() {
         updateStockItemUseCase: UpdateStockItemUseCase(repo),
         deleteStockItemUseCase: DeleteStockItemUseCase(repo),
         watchPharmacyStockUseCase: WatchPharmacyStockUseCase(repo),
+        submitVerificationDocumentsUseCase:
+            SubmitVerificationDocumentsUseCase(repo),
       );
     });
 
@@ -599,6 +634,67 @@ void main() {
           await streamController.close();
         },
       );
+    });
+
+    group('submitDocuments', () {
+      test(
+        'emits [loading, loaded] and updates pharmacy on success',
+        () async {
+          final expectedPharmacy = testPharmacy.copyWith(
+            licenseUrl: 'https://cloudinary.com/test-license.pdf',
+            licensePublicId: 'test-license-id',
+            rmohCertUrl: 'https://cloudinary.com/test-rmoh.pdf',
+            rmohCertPublicId: 'test-rmoh-id',
+            submittedAt: DateTime(2025, 2, 10),
+          );
+          repo.submitDocumentsResult = expectedPharmacy;
+
+          final states = <PharmacyState>[];
+          final sub = cubit.stream.listen(states.add);
+
+          await cubit.submitDocuments(
+            pharmacyId: 'pharm-1',
+            licenseBytes: Uint8List.fromList([1, 2, 3]),
+            licenseFilename: 'test-license.pdf',
+            rmohBytes: Uint8List.fromList([4, 5, 6]),
+            rmohFilename: 'test-rmoh.pdf',
+          );
+          await pumpEventQueue();
+          await sub.cancel();
+
+          expect(states.length, 2);
+          expect(states[0].status, PharmacyStatus.loading);
+          expect(states[1].status, PharmacyStatus.loaded);
+          expect(states[1].pharmacy, expectedPharmacy);
+          expect(states[1].errorMessage, isNull);
+          expect(repo.lastSubmittedPharmacyId, 'pharm-1');
+        },
+      );
+
+      test('emits [loading, error] when upload fails', () async {
+        repo.submitDocumentsError = Exception('Cloudinary network timeout');
+
+        final states = <PharmacyState>[];
+        final sub = cubit.stream.listen(states.add);
+
+        await cubit.submitDocuments(
+          pharmacyId: 'pharm-1',
+          licenseBytes: Uint8List.fromList([1]),
+          licenseFilename: 'doc.pdf',
+          rmohBytes: Uint8List.fromList([2]),
+          rmohFilename: 'cert.pdf',
+        );
+        await pumpEventQueue();
+        await sub.cancel();
+
+        expect(states.length, 2);
+        expect(states[0].status, PharmacyStatus.loading);
+        expect(states[1].status, PharmacyStatus.error);
+        expect(
+          states[1].errorMessage,
+          contains('Cloudinary network timeout'),
+        );
+      });
     });
   });
 }

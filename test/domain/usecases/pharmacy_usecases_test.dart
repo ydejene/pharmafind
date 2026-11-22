@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pharmafind/domain/entities/pharmacy_entity.dart';
 import 'package:pharmafind/domain/entities/stock_item_entity.dart';
@@ -7,6 +9,7 @@ import 'package:pharmafind/domain/usecases/pharmacy/create_pharmacy_usecase.dart
 import 'package:pharmafind/domain/usecases/pharmacy/delete_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_by_owner_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
+import 'package:pharmafind/domain/usecases/pharmacy/submit_verification_documents_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import 'package:pharmafind/domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
@@ -78,10 +81,32 @@ class _FakePharmacyRepository implements IPharmacyRepository {
   @override
   Future<List<StockItemEntity>> searchMedicine(String query) async => [];
 
+  String? lastSubmittedPharmacyId;
+  Uint8List? lastSubmittedLicenseBytes;
+  String? lastSubmittedLicenseFilename;
+  Uint8List? lastSubmittedRmohBytes;
+  String? lastSubmittedRmohFilename;
+
   @override
   Stream<List<StockItemEntity>> watchPharmacyStock(String pharmacyId) {
     lastWatchedPharmacyId = pharmacyId;
     return streamToReturn ?? Stream.value(stockToReturn);
+  }
+
+  @override
+  Future<PharmacyEntity> submitVerificationDocuments({
+    required String pharmacyId,
+    required Uint8List licenseBytes,
+    required String licenseFilename,
+    required Uint8List rmohBytes,
+    required String rmohFilename,
+  }) async {
+    lastSubmittedPharmacyId = pharmacyId;
+    lastSubmittedLicenseBytes = licenseBytes;
+    lastSubmittedLicenseFilename = licenseFilename;
+    lastSubmittedRmohBytes = rmohBytes;
+    lastSubmittedRmohFilename = rmohFilename;
+    return pharmacyToReturn!;
   }
 }
 
@@ -209,6 +234,35 @@ void main() {
 
         expect(fakeRepo.lastWatchedPharmacyId, 'pharm-test');
         expect(emitted, [testStock]);
+      },
+    );
+
+    test(
+      'SubmitVerificationDocumentsUseCase delegates upload to repository',
+      () async {
+        final useCase = SubmitVerificationDocumentsUseCase(fakeRepo);
+        fakeRepo.pharmacyToReturn = testPharmacy.copyWith(
+          licenseUrl: 'https://cloudinary.com/license.pdf',
+          submittedAt: DateTime(2025, 2, 1),
+        );
+
+        final licenseBytes = Uint8List.fromList([1, 2]);
+        final rmohBytes = Uint8List.fromList([3, 4]);
+
+        final result = await useCase(
+          pharmacyId: 'pharm-test',
+          licenseBytes: licenseBytes,
+          licenseFilename: 'license.pdf',
+          rmohBytes: rmohBytes,
+          rmohFilename: 'rmoh.pdf',
+        );
+
+        expect(fakeRepo.lastSubmittedPharmacyId, 'pharm-test');
+        expect(fakeRepo.lastSubmittedLicenseBytes, licenseBytes);
+        expect(fakeRepo.lastSubmittedLicenseFilename, 'license.pdf');
+        expect(fakeRepo.lastSubmittedRmohBytes, rmohBytes);
+        expect(fakeRepo.lastSubmittedRmohFilename, 'rmoh.pdf');
+        expect(result.licenseUrl, 'https://cloudinary.com/license.pdf');
       },
     );
   });

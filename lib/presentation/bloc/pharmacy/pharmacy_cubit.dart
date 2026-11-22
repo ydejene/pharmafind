@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,7 @@ import '../../../domain/usecases/pharmacy/create_pharmacy_usecase.dart';
 import '../../../domain/usecases/pharmacy/delete_stock_item_usecase.dart';
 import '../../../domain/usecases/pharmacy/get_pharmacy_by_owner_usecase.dart';
 import '../../../domain/usecases/pharmacy/get_pharmacy_stock_usecase.dart';
+import '../../../domain/usecases/pharmacy/submit_verification_documents_usecase.dart';
 import '../../../domain/usecases/pharmacy/update_pharmacy_usecase.dart';
 import '../../../domain/usecases/pharmacy/update_stock_item_usecase.dart';
 import '../../../domain/usecases/pharmacy/watch_pharmacy_stock_usecase.dart';
@@ -25,6 +27,7 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   final UpdateStockItemUseCase updateStockItemUseCase;
   final DeleteStockItemUseCase deleteStockItemUseCase;
   final WatchPharmacyStockUseCase watchPharmacyStockUseCase;
+  final SubmitVerificationDocumentsUseCase? submitVerificationDocumentsUseCase;
 
   StreamSubscription<List<StockItemEntity>>? _stockSubscription;
 
@@ -37,6 +40,7 @@ class PharmacyCubit extends Cubit<PharmacyState> {
     required this.updateStockItemUseCase,
     required this.deleteStockItemUseCase,
     required this.watchPharmacyStockUseCase,
+    this.submitVerificationDocumentsUseCase,
   }) : super(const PharmacyState());
 
   Future<void> loadPharmacy(String ownerId) async {
@@ -283,6 +287,44 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   Future<void> cancelStockSubscription() async {
     await _stockSubscription?.cancel();
     _stockSubscription = null;
+  }
+
+  Future<void> submitDocuments({
+    required String pharmacyId,
+    required Uint8List licenseBytes,
+    required String licenseFilename,
+    required Uint8List rmohBytes,
+    required String rmohFilename,
+  }) async {
+    if (submitVerificationDocumentsUseCase == null) {
+      throw StateError(
+        'SubmitVerificationDocumentsUseCase is not configured on PharmacyCubit',
+      );
+    }
+    emit(state.copyWith(status: PharmacyStatus.loading, clearError: true));
+    try {
+      final updated = await submitVerificationDocumentsUseCase!(
+        pharmacyId: pharmacyId,
+        licenseBytes: licenseBytes,
+        licenseFilename: licenseFilename,
+        rmohBytes: rmohBytes,
+        rmohFilename: rmohFilename,
+      );
+      emit(
+        state.copyWith(
+          status: PharmacyStatus.loaded,
+          pharmacy: updated,
+          clearError: true,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: PharmacyStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 
   @override

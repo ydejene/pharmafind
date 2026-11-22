@@ -1,14 +1,23 @@
+import 'dart:typed_data';
+
 import '../../domain/entities/pharmacy_entity.dart';
 import '../../domain/entities/stock_item_entity.dart';
 import '../../domain/repositories/pharmacy_repository.dart';
+import '../datasources/cloudinary_datasource.dart';
+import '../datasources/mock_cloudinary_datasource.dart';
 import '../datasources/pharmacy_datasource.dart';
 import '../models/pharmacy_model.dart';
 import '../models/stock_item_model.dart';
 
 class PharmacyRepositoryImpl implements IPharmacyRepository {
   final IPharmacyDataSource datasource;
+  final ICloudinaryDataSource cloudinaryDatasource;
 
-  PharmacyRepositoryImpl({required this.datasource});
+  PharmacyRepositoryImpl({
+    required this.datasource,
+    ICloudinaryDataSource? cloudinaryDatasource,
+  }) : cloudinaryDatasource =
+           cloudinaryDatasource ?? MockCloudinaryDataSource();
 
   @override
   Future<String> createPharmacy(PharmacyEntity pharmacy) {
@@ -75,5 +84,39 @@ class PharmacyRepositoryImpl implements IPharmacyRepository {
     return datasource
         .watchPharmacyStock(pharmacyId)
         .map((models) => models.map((m) => m.toEntity()).toList());
+  }
+
+  @override
+  Future<PharmacyEntity> submitVerificationDocuments({
+    required String pharmacyId,
+    required Uint8List licenseBytes,
+    required String licenseFilename,
+    required Uint8List rmohBytes,
+    required String rmohFilename,
+  }) async {
+    final licenseResult = await cloudinaryDatasource.uploadDocument(
+      licenseBytes,
+      licenseFilename,
+    );
+    final rmohResult = await cloudinaryDatasource.uploadDocument(
+      rmohBytes,
+      rmohFilename,
+    );
+
+    final existing = await datasource.getPharmacy(pharmacyId);
+    if (existing == null) {
+      throw Exception('Pharmacy with id $pharmacyId not found');
+    }
+
+    final updated = existing.copyWith(
+      licenseUrl: licenseResult.secureUrl,
+      licensePublicId: licenseResult.publicId,
+      rmohCertUrl: rmohResult.secureUrl,
+      rmohCertPublicId: rmohResult.publicId,
+      submittedAt: DateTime.now(),
+    );
+
+    await datasource.updatePharmacy(updated);
+    return updated.toEntity();
   }
 }
