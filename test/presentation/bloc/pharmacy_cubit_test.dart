@@ -43,9 +43,11 @@ class _MockPharmacyRepository implements IPharmacyRepository {
   StreamController<List<StockItemEntity>>? streamController;
   int watchCallCount = 0;
   String? lastWatchedPharmacyId;
+  Completer<PharmacyEntity?>? pharmacyByOwnerCompleter;
 
   @override
   Future<PharmacyEntity?> getPharmacyByOwner(String ownerId) async {
+    if (pharmacyByOwnerCompleter != null) return pharmacyByOwnerCompleter!.future;
     if (pharmacyByOwnerError != null) throw pharmacyByOwnerError!;
     return pharmacyByOwnerResult;
   }
@@ -632,6 +634,65 @@ void main() {
 
           expect(cubit.isClosed, isTrue);
           await streamController.close();
+        },
+      );
+
+      test(
+        'events from a superseded stock subscription do not update state after another pharmacy starts loading',
+        () async {
+          final stream1 = StreamController<List<StockItemEntity>>.broadcast();
+          repo.streamController = stream1;
+          repo.pharmacyByOwnerResult = testPharmacy;
+          await cubit.loadPharmacy('partner-user-123');
+
+          expect(cubit.state.status, PharmacyStatus.loaded);
+          expect(cubit.state.pharmacy?.id, 'pharm-1');
+
+          // Start loading another pharmacy with a pending completer
+          final completer = Completer<PharmacyEntity?>();
+          repo.pharmacyByOwnerCompleter = completer;
+
+          final loadFuture = cubit.loadPharmacy('partner-user-456');
+          await pumpEventQueue();
+
+          // Cubit should now be in loading state
+          expect(cubit.state.status, PharmacyStatus.loading);
+
+          // Old stream emits an event while new pharmacy is loading
+          final staleItem = StockItemEntity(
+            id: 'stale-stock-item',
+            pharmacyId: 'pharm-1',
+            pharmacyName: 'Old Pharmacy',
+            pharmacyArea: 'Old Area',
+            pharmacyPhone: '+250 788 000 000',
+            pharmacyHours: '8:00 AM - 8:00 PM',
+            pharmacyLat: -1.94,
+            pharmacyLng: 30.06,
+            medicineName: 'Old Medicine',
+            status: 'in_stock',
+            quantity: 5,
+            price: 100,
+            updatedAt: DateTime(2025, 1, 1),
+          );
+          stream1.add([staleItem]);
+          await pumpEventQueue();
+
+          // Stale event must be ignored: state must remain loading and not adopt stale items
+          expect(cubit.state.status, PharmacyStatus.loading);
+          expect(cubit.state.stockItems, isNot(contains(staleItem)));
+
+          // Complete the second load
+          final secondPharmacy = testPharmacy.copyWith(
+            id: 'pharm-2',
+            ownerId: 'partner-user-456',
+          );
+          completer.complete(secondPharmacy);
+          await loadFuture;
+
+          expect(cubit.state.status, PharmacyStatus.loaded);
+          expect(cubit.state.pharmacy?.id, 'pharm-2');
+
+          await stream1.close();
         },
       );
     });

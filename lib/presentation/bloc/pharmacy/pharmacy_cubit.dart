@@ -30,6 +30,8 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   final SubmitVerificationDocumentsUseCase? submitVerificationDocumentsUseCase;
 
   StreamSubscription<List<StockItemEntity>>? _stockSubscription;
+  int _stockSubscriptionGeneration = 0;
+  int _loadPharmacyRequestId = 0;
 
   PharmacyCubit({
     required this.getPharmacyByOwnerUseCase,
@@ -44,11 +46,15 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   }) : super(const PharmacyState());
 
   Future<void> loadPharmacy(String ownerId) async {
+    final requestId = ++_loadPharmacyRequestId;
+    cancelStockSubscription();
     emit(state.copyWith(status: PharmacyStatus.loading, clearError: true));
     try {
       final pharmacy = await getPharmacyByOwnerUseCase(ownerId);
+      if (requestId != _loadPharmacyRequestId) return;
       if (pharmacy != null) {
         final stock = await getPharmacyStockUseCase(pharmacy.id);
+        if (requestId != _loadPharmacyRequestId) return;
         emit(
           state.copyWith(
             status: PharmacyStatus.loaded,
@@ -59,7 +65,8 @@ class PharmacyCubit extends Cubit<PharmacyState> {
         );
         await subscribeToStock(pharmacy.id);
       } else {
-        await cancelStockSubscription();
+        cancelStockSubscription();
+        if (requestId != _loadPharmacyRequestId) return;
         emit(
           state.copyWith(
             status: PharmacyStatus.noPharmacy,
@@ -70,6 +77,7 @@ class PharmacyCubit extends Cubit<PharmacyState> {
         );
       }
     } catch (e) {
+      if (requestId != _loadPharmacyRequestId) return;
       emit(
         state.copyWith(
           status: PharmacyStatus.error,
@@ -255,13 +263,14 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   }
 
   Future<void> subscribeToStock(String pharmacyId) async {
-    await _stockSubscription?.cancel();
+    _stockSubscription?.cancel();
     _stockSubscription = null;
+    final generation = ++_stockSubscriptionGeneration;
     if (isClosed) return;
 
     _stockSubscription = watchPharmacyStockUseCase(pharmacyId).listen(
       (items) {
-        if (!isClosed) {
+        if (!isClosed && generation == _stockSubscriptionGeneration) {
           emit(
             state.copyWith(
               status: PharmacyStatus.loaded,
@@ -272,7 +281,7 @@ class PharmacyCubit extends Cubit<PharmacyState> {
         }
       },
       onError: (error) {
-        if (!isClosed) {
+        if (!isClosed && generation == _stockSubscriptionGeneration) {
           emit(
             state.copyWith(
               status: PharmacyStatus.error,
@@ -285,7 +294,8 @@ class PharmacyCubit extends Cubit<PharmacyState> {
   }
 
   Future<void> cancelStockSubscription() async {
-    await _stockSubscription?.cancel();
+    _stockSubscriptionGeneration++;
+    _stockSubscription?.cancel();
     _stockSubscription = null;
   }
 
@@ -329,7 +339,8 @@ class PharmacyCubit extends Cubit<PharmacyState> {
 
   @override
   Future<void> close() async {
-    await _stockSubscription?.cancel();
+    _stockSubscriptionGeneration++;
+    _stockSubscription?.cancel();
     _stockSubscription = null;
     return super.close();
   }
